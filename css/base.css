@@ -1,0 +1,218 @@
+/* ============================================================
+   GeoMind — базовые стили: токены, сброс, общие компоненты
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Палитра */
+  --bg: #eef1f8;
+  --card: #ffffff;
+  --text: #1b2130;
+  --text-soft: #55607a;
+  --muted: #8b94a9;
+  --line: #e6e9f2;
+
+  --accent: #4f6bf5;
+  --accent-2: #7c5cf0;
+  --grad: linear-gradient(135deg, #4f6bf5 0%, #7c5cf0 100%);
+
+  --green: #16a34a;
+  --green-bg: #e9f8ef;
+  --red: #dc2626;
+  --red-bg: #fdeeee;
+
+  /* Геометрия */
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --shadow-card: 0 12px 32px rgba(30, 40, 70, 0.08);
+  --shadow-sm: 0 4px 14px rgba(30, 40, 70, 0.06);
+  --shadow-btn: 0 8px 20px rgba(79, 107, 245, 0.32);
+
+  /* Типографика */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  line-height: 1.45;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(620px 420px at 88% -6%, rgba(124, 92, 240, 0.10), transparent 62%),
+    radial-gradient(520px 400px at -8% 22%, rgba(79, 107, 245, 0.10), transparent 62%),
+    linear-gradient(180deg, #f2f4fb 0%, #eef1f8 100%);
+  background-attachment: fixed;
+}
+
+#app {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+/* Появление экрана */
+.screen {
+  animation: screenIn 0.32s ease both;
+}
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ============ Карточки ============ */
+
+.card {
+  background: var(--card);
+  border: 1px solid rgba(230, 233, 242, 0.9);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ============ Кнопки ============ */
+
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease,
+              border-color 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 26px;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: var(--shadow-btn);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.06);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
+.btn-primary:not(:disabled).btn-ready {
+  animation: btnIn 0.3s ease;
+}
+
+.btn-ghost {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 24px;
+  color: var(--text-soft);
+  background: transparent;
+  border: 1.5px solid var(--line);
+}
+
+.btn-ghost:hover {
+  border-color: #cdd3e4;
+  color: var(--text);
+}
+
+/* ============ Анимации ============ */
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes feedbackIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes btnIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes correctPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  50%      { transform: translateX(6px); }
+  75%      { transform: translateX(-4px); }
+}
+
+@keyframes segIn {
+  from { opacity: 0; transform: scaleY(0.4); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+
+/* ============ Полоса прогресса уровня ============ */
+
+.levelbar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e7eaf5;
+  overflow: hidden;
+}
+
+.levelbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--grad);
+  animation: levelFill 0.9s ease both;
+}
+
+@keyframes levelFill {
+  from { width: 0; }
+}
+
+/* Появление плашки «Новый уровень!» */
+@keyframes levelUpPop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

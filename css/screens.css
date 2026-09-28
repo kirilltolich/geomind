@@ -1,0 +1,1408 @@
+/* ============================================================
+   GeoMind — стили экранов: главный, тренировка, результат
+   ============================================================ */
+
+/* ================= Главный экран ================= */
+
+.hero {
+  text-align: center;
+  padding: 8px 0 26px;
+}
+
+.logo {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.tagline {
+  margin-top: 6px;
+  color: var(--text-soft);
+  font-size: 15.5px;
+}
+
+/* Карточка статистики */
+.stats-card {
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.card-title {
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-soft);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.stat-tile {
+  padding: 14px 8px;
+  text-align: center;
+  background: #f6f7fc;
+  border-radius: var(--radius-md);
+}
+
+.stat-emoji {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.stat-value {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Блок «Начать тренировку» */
+.cta-card {
+  padding: 26px 22px;
+  margin-bottom: 30px;
+  text-align: center;
+  background: linear-gradient(160deg, #ffffff 0%, #f8f9ff 100%);
+}
+
+.cta-title {
+  margin-bottom: 18px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.btn-start {
+  font-size: 18px;
+}
+
+.btn-arrow {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.cta-hint {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Категории */
+.categories {
+  margin-top: 6px;
+}
+
+.section-title {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-soft);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.category-active {
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.category-active:hover {
+  border-color: rgba(79, 107, 245, 0.5);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+}
+
+.category-active:active {
+  transform: scale(0.99);
+}
+
+.category-locked {
+  background: #fbfbfd;
+  opacity: 0.62;
+}
+
+.category-emoji {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 26px;
+  text-align: center;
+}
+
+.category-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.category-desc {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.badge-open {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.badge-soon {
+  color: var(--muted);
+  background: #eef0f6;
+}
+
+/* ================= Экран тренировки ================= */
+
+.training-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.question-counter {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.session-xp {
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-soft);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+/* Индикатор прогресса */
+.progress {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 22px;
+}
+
+.pseg {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e6f1;
+  transition: background 0.3s ease;
+}
+
+.pseg-on {
+  background: var(--grad);
+  animation: segIn 0.35s ease both;
+  animation-delay: calc(var(--i) * 20ms);
+}
+
+/* Вопрос */
+.question-card {
+  padding: 30px 22px;
+  text-align: center;
+  animation: popIn 0.35s ease;
+}
+
+.question-flag {
+  font-size: 64px;
+  line-height: 1.1;
+}
+
+.question-text {
+  margin-top: 14px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+}
+
+/* Варианты ответа */
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  animation: popIn 0.35s ease 0.05s both;
+}
+
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 18px;
+  text-align: left;
+  color: var(--text);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.answer-btn:hover {
+  border-color: rgba(79, 107, 245, 0.55);
+}
+
+.answer-btn:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.answer-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  background: #eef1f9;
+  border-radius: 9px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.answer-btn.answer-correct {
+  border-color: var(--green);
+  background: var(--green-bg);
+  animation: correctPulse 0.45s ease;
+}
+
+.answer-btn.answer-correct .answer-letter {
+  color: #fff;
+  background: var(--green);
+}
+
+.answer-btn.answer-wrong {
+  border-color: var(--red);
+  background: var(--red-bg);
+  animation: shake 0.4s ease;
+}
+
+.answer-btn.answer-wrong .answer-letter {
+  color: #fff;
+  background: var(--red);
+}
+
+.answer-btn.answer-dim {
+  opacity: 0.5;
+}
+
+/* Блок результата ответа */
+.feedback {
+  margin-top: 18px;
+  padding: 18px 18px 16px;
+  text-align: center;
+  border-radius: var(--radius-md);
+  animation: feedbackIn 0.3s ease;
+}
+
+.feedback-good {
+  background: var(--green-bg);
+  border: 1.5px solid rgba(22, 163, 74, 0.35);
+}
+
+.feedback-bad {
+  background: var(--red-bg);
+  border: 1.5px solid rgba(220, 38, 38, 0.35);
+}
+
+.feedback-title {
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.feedback-xp {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.feedback-answer {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.feedback-answer-label {
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.feedback-answer-value {
+  margin-left: 6px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.feedback-time {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.btn-next {
+  min-height: 50px;
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+/* ================= Экран результата ================= */
+
+.screen-result {
+  padding-top: 12px;
+}
+
+.result-card {
+  padding: 34px 24px 26px;
+  text-align: center;
+  animation: resultIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+@keyframes resultIn {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.result-emoji {
+  font-size: 52px;
+  line-height: 1.2;
+  animation: bounce 1.2s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.result-title {
+  margin-top: 6px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.result-score {
+  margin-top: 10px;
+  font-size: 58px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.result-accuracy {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.result-stats {
+  margin: 24px 0 26px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.result-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: #fff;
+}
+
+.result-stat + .result-stat {
+  border-top: 1px solid var(--line);
+}
+
+.result-stat-emoji {
+  width: 26px;
+  font-size: 19px;
+  text-align: center;
+}
+
+.result-stat-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.result-stat-value {
+  margin-left: auto;
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-stat-record {
+  margin-left: 8px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: #eef1fd;
+  border-radius: 999px;
+}
+
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ================= Адаптивность ================= */
+
+@media (max-width: 480px) {
+  #app {
+    padding: 20px 14px 48px;
+  }
+
+  .logo {
+    font-size: 30px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .question-flag {
+    font-size: 54px;
+  }
+
+  .question-text {
+    font-size: 23px;
+  }
+
+  .answer-btn {
+    min-height: 56px;
+  }
+
+  .result-score {
+    font-size: 50px;
+  }
+}
+
+/* Очень узкие экраны (до 360px) */
+@media (max-width: 360px) {
+  .question-text {
+    font-size: 21px;
+  }
+
+  .category {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .category-emoji {
+    width: 32px;
+    font-size: 22px;
+  }
+}
+/* ============================================================
+   GeoMind v0.2 — профиль/уровень, мини-статистика, статистика,
+   история тренировок, улучшенный экран результата
+   ============================================================ */
+
+/* ================= Карточка уровня и серии (главная) ================= */
+
+.profile-card {
+  padding: 22px;
+  margin-bottom: 20px;
+  background: linear-gradient(165deg, #ffffff 0%, #f7f8ff 100%);
+}
+
+.profile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.profile-streak {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #8a4b08;
+  background: #fff4e3;
+  border: 1px solid #ffe4bd;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 4px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.link-arrow {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.profile-level-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.profile-level {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.profile-xp {
+  font-size: 19px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #f6a100 0%, #ff7a45 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.profile-card .levelbar {
+  margin: 16px 0 10px;
+}
+
+.level-caption {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ================= Блок тренировки ================= */
+
+.train-section {
+  margin-bottom: 26px;
+}
+
+.train-card {
+  padding: 20px 20px 22px;
+}
+
+.train-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.train-emoji {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.train-name {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.train-meta {
+  margin-top: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.btn-start {
+  font-size: 18px;
+}
+
+/* ================= Мини-статистика (главная) ================= */
+
+.mini-stats {
+  margin-bottom: 28px;
+}
+
+.mini-stats .stats-card {
+  margin-bottom: 0;
+}
+
+.stats-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stats-grid-3 .stat-value {
+  font-size: 21px;
+}
+
+.btn-view-stats {
+  min-height: 48px;
+  margin-top: 16px;
+}
+
+/* ================= Экран «Статистика» ================= */
+
+.screen-stats {
+  padding-top: 2px;
+}
+
+.screen-top {
+  margin-bottom: 16px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-height: 42px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-soft);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.btn-back:hover {
+  color: var(--text);
+  border-color: #cdd3e4;
+}
+
+.back-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.page-title {
+  margin-bottom: 20px;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.stats-section {
+  margin-bottom: 28px;
+}
+
+.detail-list {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+/* ================= История тренировок ================= */
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.history-date {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.history-main {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.history-score {
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-meta {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.empty-card {
+  padding: 26px 20px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ================= Экран результата: XP и уровень ================= */
+
+.result-xp {
+  margin-top: 20px;
+}
+
+.result-xp-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.result-xp-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.result-xp-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.result-xp-count {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+
+.result-xp-unit {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-soft);
+}
+
+/* Плашка «Новый уровень!» */
+.levelup {
+  margin: 22px 0 4px;
+  padding: 18px 16px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #fff9e8 0%, #fdeef7 100%);
+  border: 1.5px solid rgba(124, 92, 240, 0.3);
+  animation: levelUpPop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.levelup-emoji {
+  font-size: 34px;
+  line-height: 1.1;
+  animation: bounce 1.4s ease infinite;
+}
+
+.levelup-title {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #7c5cf0;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.levelup-level {
+  margin-top: 2px;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.levelup-sub {
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+/* Прогресс уровня на экране результата */
+.result-level {
+  margin-top: 16px;
+  padding: 16px 18px 14px;
+  text-align: left;
+  background: #f6f7fc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.result-level-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.result-level .levelbar {
+  margin: 10px 0 6px;
+}
+
+.result-level-cap {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ============ Адаптивность новых блоков ============ */
+
+@media (max-width: 480px) {
+  .stats-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .stats-grid-3 .stat-value {
+    font-size: 18px;
+  }
+
+  .profile-card {
+    padding: 18px;
+  }
+
+  .profile-level {
+    font-size: 22px;
+  }
+
+  .profile-xp {
+    font-size: 17px;
+  }
+
+  .history-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .history-main {
+    margin-left: 0;
+  }
+
+  .result-xp-count {
+    font-size: 40px;
+  }
+
+  .levelup-level {
+    font-size: 30px;
+  }
+}
+
+/* ============================================================
+   GeoMind v0.3 — экран настройки, сложности, группы статистики
+   ============================================================ */
+
+/* ================= Экран настройки тренировки ================= */
+
+.screen-setup {
+  padding-top: 2px;
+}
+
+.setup-section {
+  margin-bottom: 24px;
+}
+
+.setup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Универсальная выбираемая карточка (категория / сложность) */
+.sel-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sel-card:hover {
+  border-color: rgba(79, 107, 245, 0.45);
+}
+
+.sel-card:active {
+  transform: scale(0.99);
+}
+
+.sel-card.sel-card-on {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, #ffffff 0%, #f3f6ff 100%);
+  box-shadow: 0 0 0 3px rgba(79, 107, 245, 0.13), var(--shadow-sm);
+}
+
+.sel-emoji {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 27px;
+  line-height: 1;
+  text-align: center;
+}
+
+.sel-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sel-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.sel-desc {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sel-check {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--green);
+  background: var(--green-bg);
+  border-radius: 999px;
+}
+
+/* Карточки сложности */
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.diff-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px 14px;
+}
+
+.diff-card .sel-check {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+}
+
+.diff-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.diff-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.diff-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.diff-xp {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.diff-card:nth-child(1) .diff-xp { color: #16a34a; }
+.diff-card:nth-child(2) .diff-xp { color: #d97706; }
+.diff-card:nth-child(3) .diff-xp { color: #dc2626; }
+
+.diff-desc {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.btn-start-setup {
+  font-size: 18px;
+}
+
+/* ================= Шапка тренировки: категория и награда ================= */
+
+.training-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.train-crumb {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.reward-chip {
+  flex-shrink: 0;
+  padding: 4px 11px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #8a4b08;
+  background: #fff4e3;
+  border: 1px solid #ffe4bd;
+  border-radius: 999px;
+}
+
+.feedback-xp-zero {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ================= Экран результата: режим тренировки ================= */
+
+.result-mode {
+  margin-top: 4px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+/* ================= Группы статистики (сложность/категория) ================= */
+
+.group-list {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.group-item + .group-item {
+  border-top: 1px solid var(--line);
+}
+
+.group-emoji {
+  flex-shrink: 0;
+  width: 32px;
+  font-size: 21px;
+  line-height: 1;
+  text-align: center;
+}
+
+.group-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.group-val {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-left: auto;
+  text-align: right;
+}
+
+.group-acc {
+  font-size: 18px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.group-more {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ================= История: подпись категории · сложности ================= */
+
+.history-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.history-sub {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============ Адаптивность v0.3 ============ */
+
+@media (max-width: 560px) {
+  .diff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diff-card .sel-check {
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 400px) {
+  .train-crumb {
+    font-size: 12.5px;
+  }
+
+  .reward-chip {
+    font-size: 12px;
+    padding: 3px 9px;
+  }
+
+  .history-sub {
+    white-space: normal;
+  }
+}
+
+/* ============================================================
+   GeoMind v0.4 — режимы тренировки, бесконечный режим, ошибки
+   ============================================================ */
+
+/* ================= Выбор режима (экран настройки) ================= */
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.mode-card {
+  padding: 14px;
+}
+
+.mode-emoji {
+  flex-shrink: 0;
+  width: 30px;
+  font-size: 22px;
+  line-height: 1;
+  text-align: center;
+}
+
+.mode-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 15.5px;
+  font-weight: 800;
+}
+
+/* ================= Бесконечный режим: счётчики ================= */
+
+.inf-stats {
+  margin-bottom: 4px;
+}
+
+.inf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.inf-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 72px;
+  padding: 7px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.inf-chip b {
+  font-size: 15.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.inf-chip span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.btn-finish {
+  min-height: 52px;
+  margin-top: 18px;
+}
+
+/* ================= Варианты-флаги в ответах ================= */
+
+.answer-text-flag {
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: 2px;
+}
+
+/* ================= Мои ошибки ================= */
+
+.mistakes-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.btn-repeat {
+  min-height: 54px;
+}
+
+.mistake-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mistake-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.mistake-flag {
+  flex-shrink: 0;
+  font-size: 34px;
+  line-height: 1.2;
+}
+
+.mistake-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mistake-q {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.mistake-ans {
+  margin-top: 5px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.mistake-wrong {
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--red);
+}
+
+/* ============ Адаптивность v0.4 ============ */
+
+@media (max-width: 400px) {
+  .mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inf-chip {
+    min-width: 60px;
+    padding: 6px 9px;
+  }
+
+  .answer-text-flag {
+    font-size: 30px;
+  }
+}
