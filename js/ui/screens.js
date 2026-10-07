@@ -88,6 +88,25 @@
     return { acc: acc, more: `· ${qty}` };
   }
 
+  const CURRENCY_FACT_LABEL = {
+    name: "Валюта",
+    code: "Код ISO",
+    symbol: "Символ",
+  };
+
+  /** Чипы с данными о валюте в карточке вопроса. */
+  function currencyFactsEl_(facts) {
+    if (!Array.isArray(facts) || facts.length === 0) return null;
+    return h("div", { class: "currency-facts" },
+      facts.map((f) =>
+        h("div", { class: `currency-fact currency-fact-${f.kind}` },
+          h("span", { class: "currency-fact-label", text: CURRENCY_FACT_LABEL[f.kind] || "" }),
+          h("span", { class: "currency-fact-value", text: f.value }),
+        ),
+      ),
+    );
+  }
+
   function catDiffLabel(category, difficulty, withCatEmoji) {
     const catLabel = `${withCatEmoji ? `${category.emoji} ` : ""}${category.title}`;
     if (difficulty) return `${catLabel} · ${difficulty.emoji} ${difficulty.title}`;
@@ -526,11 +545,22 @@
         ? FlagImage({ country: q.country, alt: `Флаг: ${q.country}` })
         : null;
 
+      // Название страны в карточке (для вопросов про валюты).
+      const questionCountryEl = q.showCountryName
+        ? h("div", { class: "question-country", text: q.country })
+        : null;
+
+      // Чипы «Валюта / Код / Символ». Тип вопроса сам решает, что безопасно
+      // показать, чтобы не выдать ответ (см. js/data/questions.js).
+      const currencyFactsEl = currencyFactsEl_(q.currencyFacts);
+
       const questionCard = h(
         "div",
         { class: `card question-card${q.showFlag ? " flag-card" : ""}` },
         questionFlagEl,
+        questionCountryEl,
         h("h2", { class: "question-text", text: q.promptText }),
+        currencyFactsEl,
       );
 
       // — Варианты ответа —

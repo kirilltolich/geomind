@@ -14,7 +14,7 @@ window.GeoMind.Difficulties = [
     emoji: "🟢",
     title: "Легко",
     xpPerCorrect: 10,
-    desc: "Хорошо известные страны и столицы",
+    desc: "Известные страны и очевидные варианты",
   },
   {
     id: "medium",
@@ -28,6 +28,6 @@ window.GeoMind.Difficulties = [
     emoji: "🔴",
     title: "Сложно",
     xpPerCorrect: 30,
-    desc: "Редкие страны и флаги, которые легко перепутать",
+    desc: "Редкие страны и легко перепутываемые варианты",
   },
 ];

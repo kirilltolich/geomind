@@ -141,7 +141,7 @@
             category: q.category,
             difficulty: q.difficulty,
             country: q.country,
-            code: q.code,
+            code: q.flagCode || q.code,
             promptText: q.promptText,
             correctText: q.correctText,
             correctLabel: q.correctLabel,

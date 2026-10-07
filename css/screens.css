@@ -1566,3 +1566,86 @@
     width: 60px;
   }
 }
+
+/* ============================================================
+   GeoMind — категория «Валюты»: страна и чипы валюты в вопросе
+   ============================================================ */
+
+.question-country {
+  margin-bottom: 4px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+/* Если над вопросом есть название страны, вопрос стоит чуть ближе */
+.question-country + .question-text {
+  margin-top: 6px;
+}
+
+.currency-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.currency-fact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 90px;
+  padding: 10px 14px;
+  background: #f6f7fc;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.currency-fact-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.currency-fact-value {
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.currency-fact-code .currency-fact-value {
+  letter-spacing: 1.5px;
+}
+
+.currency-fact-symbol .currency-fact-value {
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+@media (max-width: 480px) {
+  .question-country {
+    font-size: 17px;
+  }
+
+  .currency-facts {
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .currency-fact {
+    min-width: 78px;
+    padding: 8px 11px;
+  }
+
+  .currency-fact-value {
+    font-size: 16px;
+  }
+
+  .currency-fact-symbol .currency-fact-value {
+    font-size: 22px;
+  }
+}
