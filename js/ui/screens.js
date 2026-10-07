@@ -13,6 +13,7 @@
   const Levels = window.GeoMind.Levels;
   const Difficulties = window.GeoMind.Difficulties;
   const Categories = window.GeoMind.Categories;
+  const FlagImage = window.GeoMind.FlagImage;
   const h = Dom.h;
 
   // Таймер автоперехода в бесконечном режиме (глобальный для экрана)
@@ -386,6 +387,70 @@
     renderQuestion(session, root);
   }
 
+  /* ================= Подтверждение выхода из тренировки ================= */
+
+  /**
+   * Открывает модалку «Вы действительно хотите выйти? Прогресс текущей
+   * тренировки будет потерян». Если пользователь отменяет выход —
+   * мягко возобновляет авто-переход бесконечного режима, чтобы экран
+   * не «завис» между вопросами.
+   */
+  function openExitConfirm(session, root) {
+    clearAuto();
+    let keyHandler = null;
+
+    function resumeAuto() {
+      const q = session.current();
+      if (session.mode === "infinite" && q && q.answered && document.querySelector(".screen-training")) {
+        autoTimer = setTimeout(() => {
+          autoTimer = null;
+          if (document.querySelector(".screen-training")) {
+            session.advance();
+            renderQuestion(session, root);
+          }
+        }, 1400);
+      }
+    }
+
+    function close() {
+      overlay.remove();
+      if (keyHandler) document.removeEventListener("keydown", keyHandler);
+    }
+
+    const overlay = h("div", {
+      class: "modal-overlay",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": "Подтверждение выхода из тренировки",
+      onclick: (e) => {
+        if (e.target === overlay) { close(); resumeAuto(); }
+      },
+    },
+      h("div", { class: "modal-card" },
+        h("div", { class: "modal-emoji", text: "🚪" }),
+        h("h3", { class: "modal-title", text: "Вы действительно хотите выйти?" }),
+        h("p", { class: "modal-text", text: "Прогресс текущей тренировки будет потерян" }),
+        h("div", { class: "modal-actions" },
+          h("button", {
+            class: "btn btn-danger btn-modal-exit",
+            onclick: () => { close(); renderHome(); },
+          }, "Выйти"),
+          h("button", {
+            class: "btn btn-ghost btn-modal-stay",
+            onclick: () => { close(); resumeAuto(); },
+          }, "Продолжить тренировку"),
+        ),
+      ),
+    );
+
+    keyHandler = (e) => {
+      if (e.key === "Escape") { close(); resumeAuto(); }
+    };
+    document.addEventListener("keydown", keyHandler);
+
+    document.body.appendChild(overlay);
+  }
+
   function renderQuestion(session, root) {
     clearAuto();
     const q = session.current();
@@ -405,9 +470,22 @@
       ? "⭐ до +30 XP"
       : `⭐ +${session.difficulty.xpPerCorrect} XP`;
 
+    const exitBtn = h("button", {
+      class: "btn btn-exit",
+      "aria-label": "Выйти в главное меню",
+      title: "Выйти в главное меню",
+      onclick: () => openExitConfirm(session, root),
+    },
+      h("span", { class: "btn-exit-x", text: "✕" }),
+      h("span", { class: "btn-exit-label", text: "Выйти" }),
+    );
+
     const meta = h("div", { class: "training-meta" },
       h("span", { class: "train-crumb", text: crumbText }),
-      h("span", { class: "reward-chip", text: rewardText }),
+      h("div", { class: "training-meta-right" },
+        h("span", { class: "reward-chip", text: rewardText }),
+        exitBtn,
+      ),
     );
 
     let middle;
@@ -441,27 +519,31 @@
         ),
       );
       middle = h("div", {}, header, progress);
-    }
+    }      const questionFlagEl =
+        q.flagImg != null
+          ? FlagImage({ country: q.country, alt: q.country, emoji: q.flag })
+          : h("div", { class: "question-flag question-flag-emoji", text: q.flag });
 
-    const questionCard = h("div", { class: "card question-card" },
-      h("div", { class: "question-flag", text: q.flag }),
+      const questionCard = h("div", { class: "card question-card flag-card" }, questionFlagEl,
       h("h2", { class: "question-text", text: q.promptText }),
-    );
-
-    const answers = h("div", { class: "answers" },
-      q.options.map((option, i) =>
-        h("button", {
+    );      const answers = h("div", { class: "answers" },
+      q.options.map((option, i) => {
+        const labelSpan = h("span", { class: "answer-letter", text: Config.ANSWER_LABELS[i] });
+        let valueSpan;
+        if (q.optionType === "flag" && q.optionFlagImgs && q.optionFlagImgs[i]) {
+          valueSpan = FlagImage({ country: option, alt: option });
+        } else {
+          valueSpan = h("span", {
+            class: q.optionType === "flag" ? "answer-text answer-text-flag" : "answer-text",
+            text: option,
+          });
+        }
+        return h("button", {
           class: "btn answer-btn",
           "data-index": String(i),
           onclick: () => handleAnswer(session, i, root),
-        },
-          h("span", { class: "answer-letter", text: Config.ANSWER_LABELS[i] }),
-          h("span", {
-            class: q.optionType === "flag" ? "answer-text answer-text-flag" : "answer-text",
-            text: option,
-          }),
-        ),
-      ),
+        }, labelSpan, valueSpan);
+      }),
     );
 
     const children = [meta, middle, questionCard, answers];
@@ -501,13 +583,14 @@
       : h("div", { class: "feedback-xp feedback-xp-zero", text: "+0 XP" });
 
     let nextBtn = null;
-    if (!isInfinite) {
-      const nextLabel = session.isLast ? "Показать результат →" : "Следующий вопрос →";
+    const canGoNext = true;
+    if (canGoNext) {
+      const nextLabel = (session.mode === "mistakes" || session.isLast) ? "Показать результат →" : "Следующий вопрос →";
       nextBtn = h("button", {
         class: "btn btn-primary btn-next",
         disabled: true,
         onclick: () => onNext(session, root),
-      }, nextLabel);
+      }, (session.mode === "mistakes" || session.isLast) ? "Показать результат →" : "Следующий вопрос →");;
     }
 
     const feedback = h("div", {
@@ -547,7 +630,7 @@
   }
 
   function onNext(session, root) {
-    if (session.isLast) {
+    if (session.isLast || (session.mode === "mistakes" && session.index >= session.total)) {
       finishTraining(session);
       return;
     }
@@ -876,7 +959,9 @@
             h("div", { class: "mistake-list" },
               mistakes.map((m) =>
                 h("div", { class: "mistake-item" },
-                  h("span", { class: "mistake-flag", text: m.flag || "❓" }),
+                  (m.flagImg != null)
+                    ? FlagImage({ country: m.country, alt: m.country })
+                    : h("span", { class: "mistake-flag", text: m.flag || "❓" }),
                   h("div", { class: "mistake-body" },
                     h("div", { class: "mistake-q", text: m.promptText }),
                     h("div", { class: "mistake-ans", text: `Правильный ответ: ${m.correctLabel}` }),
@@ -893,10 +978,10 @@
   }
 
   window.GeoMind.Screens = {
-    renderHome: renderHome,
-    renderSetup: renderSetup,
-    renderTraining: renderTraining,
-    renderResult: renderResult,
-    renderStats: renderStats,
+    renderHome,
+    renderSetup,
+    renderTraining,
+    renderResult,
+    renderStats,
   };
 })();
