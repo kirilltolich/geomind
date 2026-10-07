@@ -90,7 +90,8 @@
         return correctCount;
       },
       get avgTimeNow() {
-        return answeredCount ? totalTimeMs / answeredCount / 1000 : null;
+        const answered = correctCount + wrongCount;
+        return answered ? totalTimeMs / answered / 1000 : null;
       },
       get mode() {
         return mode;
@@ -136,10 +137,11 @@
           wrongCount += 1;
           currentStreak = 0;
           mistakes.push({
+            id: q.id,
             category: q.category,
             difficulty: q.difficulty,
             country: q.country,
-            flag: q.flag,
+            code: q.code,
             promptText: q.promptText,
             correctText: q.correctText,
             correctLabel: q.correctLabel,
@@ -162,7 +164,6 @@
           isCorrect: isCorrect,
           correctText: q.correctText,
           correctLabel: q.correctLabel,
-          flag: q.flag,
           optionIndex: optionIndex,
           elapsedSec: elapsedMs / 1000,
           reward: reward,

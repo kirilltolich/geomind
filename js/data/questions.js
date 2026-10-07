@@ -6,14 +6,27 @@
  *
  * У каждого вопроса есть вариант (variant), чтобы тренировка не была
  * однообразной:
- *   capitals variant "a": «Какая столица у …?»      (варианты — столицы)
+ *   capitals variant "a": «Какая столица у …?»       (варианты — столицы)
  *   capitals variant "b": «… — столица какой страны?» (варианты — страны)
- *   flags    variant "a": «Какой стране принадлежит этот флаг?» (варианты — страны)
- *   flags    variant "b": «Какой флаг принадлежит …?» (варианты — флаги)
+ *   flags    variant "a": «Какой стране принадлежит этот флаг?»
+ *                         (варианты — страны, показывается SVG-флаг)
+ *   flags    variant "b": «Какой флаг принадлежит …?»
+ *                         (варианты — страны, отображаются SVG-флагами)
+ *
+ * ВАЖНО: значения вариантов — всегда НАЗВАНИЯ стран или столиц.
+ * Unicode-флаги не используются ни в данных, ни в вариантах ответа.
+ * Флаг рисуется слоем отображения (js/lib/flag-image.js) из локального
+ * SVG по ISO-коду страны.
  *
  * Структура вопроса (общая для всех категорий и режимов):
- *   { id, category, difficulty, variant, flag, country, promptText,
- *     optionType ("text"|"flag"), options, correctIndex, correctText, correctLabel }
+ *   { id, category, difficulty, variant, country, promptText,
+ *     showFlag, optionType ("text"|"flag"), options,
+ *     correctIndex, correctText, correctLabel }
+ *
+ *   showFlag   — показывать ли SVG-флаг в карточке вопроса. Он скрыт,
+ *                когда флаг и есть правильный ответ (иначе вопрос был бы
+ *                подсказан сам себе).
+ *   optionType — как рисовать варианты: текстом или флагами.
  *
  * Отвлекающие варианты берутся из «зоны сложности» выбранного уровня:
  *   easy   — только лёгкие (самые очевидные)
@@ -84,30 +97,35 @@
 
     if (isFlags) {
       if (variant === "b") {
-        // Какой флаг принадлежит Германии? → варианты — флаги
+        // Какой флаг принадлежит Германии?
+        // Варианты — страны, но рисуются флагами (optionType: "flag").
+        // Флаг в карточке вопроса скрыт: он и есть правильный ответ.
         const distractors = pickValues(
           scopeEntries(categoryId, difficultyId),
-          (e) => e.flag,
-          entry.flag,
+          (e) => e.country,
+          entry.country,
           3,
         );
-        const options = shuffle([entry.flag, ...distractors]);
+        const options = shuffle([entry.country, ...distractors]);
         return {
           id: `flags:${entry.country}`,
           category: "flags",
           difficulty: difficultyId,
           variant: "b",
-          flag: entry.flag,
           country: entry.country,
-          promptText: `Какой флаг принадлежит ${entry.country}?`,
+          code: entry.code,
+          promptText: `Какой флаг принадлежит ${entry.gen}?`,
+          showFlag: false,
           optionType: "flag",
           options: options,
-          correctIndex: options.indexOf(entry.flag),
-          correctText: entry.flag,
-          correctLabel: `${entry.country} ${entry.flag}`,
+          correctIndex: options.indexOf(entry.country),
+          correctText: entry.country,
+          correctLabel: entry.country,
         };
       }
-      // Какой стране принадлежит этот флаг? → варианты — страны
+
+      // Какой стране принадлежит этот флаг?
+      // Варианты — страны текстом, в карточке вопроса — сам флаг.
       const distractors = pickValues(
         scopeEntries(categoryId, difficultyId),
         (e) => e.country,
@@ -120,19 +138,21 @@
         category: "flags",
         difficulty: difficultyId,
         variant: "a",
-        flag: entry.flag,
         country: entry.country,
+        code: entry.code,
         promptText: "Какой стране принадлежит этот флаг?",
+        showFlag: true,
         optionType: "text",
         options: options,
         correctIndex: options.indexOf(entry.country),
         correctText: entry.country,
-        correctLabel: `${entry.country} ${entry.flag}`,
+        correctLabel: entry.country,
       };
     }
 
     if (variant === "b") {
-      // Токио — столица какой страны? → варианты — страны
+      // Токио — столица какой страны?
+      // вариант ответа — страна, поэтому флаг в карточке скрыт.
       const distractors = pickValues(
         scopeEntries(categoryId, difficultyId),
         (e) => e.country,
@@ -145,18 +165,20 @@
         category: "capitals",
         difficulty: difficultyId,
         variant: "b",
-        flag: entry.flag,
         country: entry.country,
+        code: entry.code,
         promptText: `${entry.capital} — столица какой страны?`,
+        showFlag: false,
         optionType: "text",
         options: options,
         correctIndex: options.indexOf(entry.country),
         correctText: entry.country,
-        correctLabel: `${entry.country} ${entry.flag}`,
+        correctLabel: entry.country,
       };
     }
 
-    // Какая столица у …? → варианты — столицы
+    // Какая столица у …? — флаг страны показан как подсказка,
+    // вариант ответа — сама столица.
     const distractors = pickValues(
       scopeEntries(categoryId, difficultyId),
       (e) => e.capital,
@@ -169,14 +191,15 @@
       category: "capitals",
       difficulty: difficultyId,
       variant: "a",
-      flag: entry.flag,
       country: entry.country,
+      code: entry.code,
       promptText: `Какая столица у ${entry.gen}?`,
+      showFlag: true,
       optionType: "text",
       options: options,
       correctIndex: options.indexOf(entry.capital),
       correctText: entry.capital,
-      correctLabel: `${entry.capital} ${entry.flag}`,
+      correctLabel: entry.capital,
     };
   }
 

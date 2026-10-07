@@ -1,117 +1,140 @@
 /* ============================================================
-   GeoMind — паблик-утилита для получения изображения флага из
-   https://flag-gimn.ru/flags/ (RealFlagi / RealFlags).
-   Ни один другой модуль не зависит от конкретного источника:
-   чтобы перейти на SVG/PNG-хостинг, достаточно изменить эту
-   функцию (или конфиг) — логика вопросов и экраны не трогать.
+   GeoMind — слой отображения флагов.
+
+   Единственная точка, где приложение знает, откуда берётся
+   изображение флага. Никакой другой модуль не строит пути сам.
+
+   Схема:
+       название страны  →  ISO-код  →  <base>/assets/flags/{code}.svg
+
+   Все флаги лежат внутри проекта, внешние сайты не используются.
+
+   Базовый путь вычисляется от document.baseURI, поэтому корректно
+   работает и локально (file://), и на GitHub Pages в подпапке
+   (https://kirilltolich.github.io/geomind/).
+
+   Публичный интерфейс:
+       FlagImage({ country, alt, code, variant })  →  HTMLElement
+       FlagImage.urlFor(country | {country, code}) →  string
    ============================================================ */
 
 (function () {
   "use strict";
 
+  const Codes = window.GeoMind.FlagCodes || {};
+
   /* ──────────────────────────────────────────────────────────
-     Словарь соответствия названй стран → ожидаемым именам файлов
-     на flag-gimn.ru.
-     В большинстве случаев ключ = названию файла, но для части
-     стран файл называется иначе (ядра флага, "flag_of_…").
+     Базовый путь к локальным ресурсам.
+
+     Используем document.baseURI — он учитывает:
+       • тег <base href>, если он появится в index.html;
+       • локальный запуск: file:///C:/.../GeoMind/index.html;
+       • GitHub Pages в подпапке: /geomind/index.html.
+
+     Относительный путь "assets/flags/" разрешается от baseURI,
+     поэтому на Pages он превращается в /geomind/assets/flags/,
+     а не в корневой /assets/flags/.
      ────────────────────────────────────────────────────────── */
-
-  const FILE_MAP = {
-    // Названия, которые отличаются от ключа-страны
-    "США":          "United_States",
-    "Великобритания":"United_Kingdom",
-    "Северная Македония": "North_Macedonia",
-    "ОАЭ":          "United_Arab_Emirates",
-    "Уругвай":      "Uruguay",
-    "Либерия":      "Liberia",
-  };
-
-  /* Мэппинг названия файла → файл на flag-gimn.ru.
-     Некоторые страны на сайте хранятся под "flag_of_ИмяСтрани"
-     (например, флаги территорий/организаций). Для обычных стран
-     это не нужно, но оставляем для стабильности, если вдруг
-     файл не найдётся. */
-
-  const FILE_PREFIX = ""; // пусто — имена файлов используются напрямую,
-                          // без "flag_of_" префикса (проверено: Финляндия, Япония, Великобритания и т.д. лежат как "Финляндия.png").
-  const BASE = "https://flag-gimn.ru/flags/";
-
-  /** Нормализует название страны в имя файла (без расширения).
-   *   Россия → Россия
-   *   США      → United_States
-   *   ОАЭ      → United_Arab_Emirates
-   */
-  function fileNameFor(country) {
-    if (FILE_MAP[country]) return FILE_MAP[country];
-    // Напр. для "Республика К", "Королевство С" берём как есть,
-    // если ключ нет — проверяем ниже.
-    return country;
+  function resolveAssetBase() {
+    if (window.GeoMind && window.GeoMind.ASSET_BASE) {
+      return String(window.GeoMind.ASSET_BASE);
+    }
+    try {
+      const base = document.baseURI
+        || (window.location && window.location.href)
+        || "";
+      return new URL("assets/flags/", base).href; // гарантированно со слэшем
+    } catch (e) {
+      return "assets/flags/";
+    }
   }
 
-  /** Возвращает изображение флага: тег <img> или null, если
-   *   не удалось определить страну.
-   *
-   *   cards — { alt, country }
-   *   Для адаптивности под другие источники: если источник пуст,
-   *   возвращается эмодзи-флаг из данных (fallback).
-   */
-  function flagImageEl(card) {
-    const country = card?.country;
-    const alt = card?.alt || country;
+  const ASSET_BASE = resolveAssetBase();
+
+  /** ISO-код страны по её названию. */
+  function codeFor(country) {
     if (!country) return null;
+    return Codes[country] || null;
+  }
 
-    // 1) файл из мапы
-    let name = fileNameFor(country);
-    let url = BASE + encodeURIComponent(name) + ".png";
+  /** Полный URL локального SVG-флага. */
+  function urlFor(input) {
+    const card = typeof input === "string" ? { country: input } : (input || {});
+    const code = card.code || codeFor(card.country);
+    if (!code) return null;
+    return ASSET_BASE + code + ".svg";
+  }
 
-    // 2) fallback: эмодзи-флаг (если вдруг нет изображения)
-    const fallbackEmoji = card?.emoji || null;
+  /* ──────────────────────────────────────────────────────────
+     Создание элемента флага.
+
+     card:
+       country — название страны из данных (обязательно, если нет code)
+       code    — ISO-код (необязательно; берётся из карты по country)
+       alt     — alt-текст (по умолчанию название страны)
+       variant — "question" (по умолчанию) | "option" — управляет размером
+
+     Возвращает <img> для существующего кода либо нейтральную
+     заглушку (без Unicode-эмодзи), если код не найден.
+     ────────────────────────────────────────────────────────── */
+  function flagImageEl(card) {
+    const c = card || {};
+    const country = c.country || null;
+    const code = c.code || codeFor(country);
+    const alt = c.alt || country || "Флаг";
+    const variant = c.variant === "option" ? "option" : "question";
+
+    if (!code) return missingFlagEl(alt, variant);
 
     const img = document.createElement("img");
+    img.className = variant === "option" ? "flag-option-img" : "question-flag-img";
+    img.src = ASSET_BASE + code + ".svg";
     img.alt = alt;
     img.title = alt;
-    img.src = url;
-    img.className = "question-flag-img";
     img.loading = "lazy";
     img.decoding = "async";
+    img.width = variant === "option" ? 72 : 200;
+    img.height = variant === "option" ? 48 : 120;
 
-    // Если изображение не загрузится — показать эмодзи (или ничего)
-    const noImgFallback = () => {
-      img.style.display = "none";
-      if (fallbackEmoji) {
-        const span = document.createElement("span");
-        span.className = "question-flag-emoji-fallback";
-        span.textContent = fallbackEmoji;
-        // вставляем после img, чтобы эмодзи появился в том же блоке
-        if (img.parentNode) img.parentNode.appendChild(span);
+    // Локальный фолбэк: не эмодзи, а нейтральная заглушка.
+    img.onerror = function () {
+      if (img.parentNode) {
+        img.parentNode.replaceChild(missingFlagEl(alt, variant), img);
       }
     };
-    img.onerror = noImgFallback;
+
     return img;
   }
 
-  /* ──────────────────────────────────────────────────────────
-     Безопасный режим загрузки: при первой загрузке страницы многие
-     картинки могут быть ещё не закэшированы. Автоматически
-     пытаемся предзагрузить флаги, если загрузился хотя бы один.
-     (Это лишь оптимизация — не блокирует рендер.)
-     ────────────────────────────────────────────────────────── */
+  /** Нейтральная заглушка вместо флага (без Unicode-флага). */
+  function missingFlagEl(alt, variant) {
+    const span = document.createElement("span");
+    span.className = variant === "option" ? "flag-missing flag-missing-option" : "flag-missing";
+    span.textContent = "?";
+    span.title = alt;
+    span.setAttribute("aria-label", alt);
+    return span;
+  }
 
-  function preloadFlags(countryNames) {
-    if (!Array.isArray(countryNames)) return;
-    for (const c of countryNames) {
-      const name = fileNameFor(c);
-      const url = BASE + encodeURIComponent(name) + ".png";
-      // предзагрузка «молча» — создаём new Image, но не добавляем в DOM
-      const i = new Image();
-      i.src = url;
+  /* ──────────────────────────────────────────────────────────
+     Предзагрузка (опционально): прогревает кэш локальных флагов.
+     ────────────────────────────────────────────────────────── */
+  function preloadFlags(countries) {
+    if (!Array.isArray(countries)) return;
+    for (const country of countries) {
+      const url = urlFor(country);
+      if (url) { const i = new Image(); i.src = url; }
     }
   }
 
   /* ──────────────────────────────────────────────────────────
      Экспорт
      ────────────────────────────────────────────────────────── */
-  if (typeof window !== "undefined") {
+  flagImageEl.urlFor = urlFor;
+  flagImageEl.baseUrl = ASSET_BASE;
+  flagImageEl.codeFor = codeFor;
+
+  if (typeof window !== "undefined" && window.GeoMind) {
     window.GeoMind.FlagImage = flagImageEl;
     window.GeoMind.FlagImagePreload = preloadFlags;
   }

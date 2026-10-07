@@ -164,12 +164,15 @@
         if (q.correct) rec.correct += 1;
       }
 
-      // Ошибки («Мои ошибки») — новые сверху, без дублей одного вопроса
+      // Ошибки («Мои ошибки») — новые сверху, без дублей одного вопроса.
+      // Ключ: id вопроса, а для старых записей без id — категория + страна.
+      const mistakeKey = (m) => m && (m.id || `${m.category}:${m.country}`);
       const newMistakes = Array.isArray(result.mistakes) ? result.mistakes : [];
-      const existingIds = new Set(stats.mistakes.map((m) => m.id));
+      const existingIds = new Set(stats.mistakes.map(mistakeKey).filter(Boolean));
       for (const m of newMistakes) {
-        if (!m || existingIds.has(m.id)) continue;
-        existingIds.add(m.id);
+        const key = mistakeKey(m);
+        if (!key || existingIds.has(key)) continue;
+        existingIds.add(key);
         stats.mistakes.unshift(m);
       }
       if (stats.mistakes.length > MISTAKES_LIMIT) {

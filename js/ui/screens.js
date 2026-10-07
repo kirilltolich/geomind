@@ -519,39 +519,36 @@
         ),
       );
       middle = h("div", {}, header, progress);
-    }      const questionFlagEl =
-        q.flagImg != null
-          ? FlagImage({ country: q.country, alt: q.country })
-          : h("div", { class: "question-flag question-flag-emoji", text: q.flag });
+    }      // — Карточка вопроса —
+      // Флаг показывается, только если он НЕ является правильным ответом
+      // (q.showFlag). Иначе вопрос подсказывал бы сам себя.
+      const questionFlagEl = q.showFlag
+        ? FlagImage({ country: q.country, alt: `Флаг: ${q.country}` })
+        : null;
 
-      const questionCard = h("div", { class: "card question-card flag-card" }, questionFlagEl,
-      h("h2", { class: "question-text", text: q.promptText }),
-    );      const answers = h("div", { class: "answers" },
-      q.options.map((option, i) => {
-        const labelSpan = h("span", { class: "answer-letter", text: Config.ANSWER_LABELS[i] });
-        let valueSpan;
-        if (q.optionType === "flag" && q.optionFlagImgs && q.optionFlagImgs[i]) {
-          valueSpan = FlagImage({ country: option, alt: option });
-        } else if (q.optionType === "flag") {
-          // Флаг в варианте ответа: пытаемся отрисовать изображение,
-          // ища запись страны по названию option.
-          const optEntry = window.GeoMind.Data.FLAGS.find((e) => e.country === option);
-          valueSpan = optEntry && optEntry.flagImg
-            ? FlagImage({ country: optEntry.country, alt: optEntry.country })
-            : h("span", { class: "answer-text answer-text-flag", text: option });
-        } else {
-          valueSpan = h("span", {
-            class: "answer-text",
-            text: option,
-          });
-        }
-        return h("button", {
-          class: "btn answer-btn",
-          "data-index": String(i),
-          onclick: () => handleAnswer(session, i, root),
-        }, labelSpan, valueSpan);
-      }),
-    );
+      const questionCard = h(
+        "div",
+        { class: `card question-card${q.showFlag ? " flag-card" : ""}` },
+        questionFlagEl,
+        h("h2", { class: "question-text", text: q.promptText }),
+      );
+
+      // — Варианты ответа —
+      // optionType === "flag": вариант — название страны, рисуется SVG-флагом.
+      // optionType === "text":  вариант — текст (страна или столица).
+      const answers = h("div", { class: "answers" },
+        q.options.map((option, i) => {
+          const labelSpan = h("span", { class: "answer-letter", text: Config.ANSWER_LABELS[i] });
+          const valueSpan = q.optionType === "flag"
+            ? FlagImage({ country: option, alt: `Флаг: ${option}`, variant: "option" })
+            : h("span", { class: "answer-text", text: option });
+          return h("button", {
+            class: "btn answer-btn",
+            "data-index": String(i),
+            onclick: () => handleAnswer(session, i, root),
+          }, labelSpan, valueSpan);
+        }),
+      );
 
     const children = [meta, middle, questionCard, answers];
     if (isInfinite) {
@@ -966,9 +963,9 @@
             h("div", { class: "mistake-list" },
               mistakes.map((m) =>
                 h("div", { class: "mistake-item" },
-                  (m.flagImg != null)
-                    ? FlagImage({ country: m.country, alt: m.country })
-                    : h("span", { class: "mistake-flag", text: m.flag || "❓" }),
+                  h("span", { class: "mistake-flag" },
+                    FlagImage({ country: m.country, alt: `Флаг: ${m.country}`, variant: "option" }),
+                  ),
                   h("div", { class: "mistake-body" },
                     h("div", { class: "mistake-q", text: m.promptText }),
                     h("div", { class: "mistake-ans", text: `Правильный ответ: ${m.correctLabel}` }),
