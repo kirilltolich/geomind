@@ -244,6 +244,26 @@
   line-height: 1.1;
 }
 
+/* Изображение флага в вопросе */
+.question-flag-img {
+  display: block;
+  width: 200px;
+  height: auto;
+  max-width: 60vw;
+  margin: 0 auto 14px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+  background: #f6f7fb;
+}
+
+.question-flag-emoji-fallback {
+  display: block;
+  font-size: 64px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
 .question-text {
   margin-top: 14px;
   font-size: 26px;
@@ -514,6 +534,15 @@
   }
 
   .question-flag {
+    font-size: 54px;
+  }
+
+  .question-flag-img {
+    width: 160px;
+    max-width: 70vw;
+  }
+
+  .question-flag-emoji-fallback {
     font-size: 54px;
   }
 

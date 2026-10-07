@@ -521,7 +521,7 @@
       middle = h("div", {}, header, progress);
     }      const questionFlagEl =
         q.flagImg != null
-          ? FlagImage({ country: q.country, alt: q.country, emoji: q.flag })
+          ? FlagImage({ country: q.country, alt: q.country })
           : h("div", { class: "question-flag question-flag-emoji", text: q.flag });
 
       const questionCard = h("div", { class: "card question-card flag-card" }, questionFlagEl,
@@ -532,9 +532,16 @@
         let valueSpan;
         if (q.optionType === "flag" && q.optionFlagImgs && q.optionFlagImgs[i]) {
           valueSpan = FlagImage({ country: option, alt: option });
+        } else if (q.optionType === "flag") {
+          // Флаг в варианте ответа: пытаемся отрисовать изображение,
+          // ища запись страны по названию option.
+          const optEntry = window.GeoMind.Data.FLAGS.find((e) => e.country === option);
+          valueSpan = optEntry && optEntry.flagImg
+            ? FlagImage({ country: optEntry.country, alt: optEntry.country })
+            : h("span", { class: "answer-text answer-text-flag", text: option });
         } else {
           valueSpan = h("span", {
-            class: q.optionType === "flag" ? "answer-text answer-text-flag" : "answer-text",
+            class: "answer-text",
             text: option,
           });
         }
