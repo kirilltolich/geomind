@@ -88,11 +88,18 @@
     return [entry.code];
   }
 
-  /** Сколько стран в базе используют валюту с этим кодом. */
-  function countriesWithCode(code) {
+  /**
+   * Страны базы, у которых отображаемое имя валюты совпадает с данным.
+   *
+   * Названия валют нейтральные («Доллар», «Песо», «Фунт»), поэтому одно имя
+   * носит сразу много стран. Вопрос «какая страна использует валюту «…»?»
+   * корректен, только если имя принадлежит ровно одной стране базы, — иначе
+   * верных ответов было бы несколько.
+   */
+  function countriesWithName(name) {
     const set = new Set();
     for (const e of CURRENCIES) {
-      if (codesOf(e).includes(code)) set.add(e.country);
+      if (e.currency === name) set.add(e.country);
     }
     return set;
   }
@@ -121,15 +128,6 @@
   }
 
   /* ── Подготовка данных валют один раз при загрузке ── */
-
-  // ISO-код (3 буквы) → набор валютных записей
-  const byCode = new Map();
-  for (const e of CURRENCIES) {
-    for (const code of codesOf(e)) {
-      if (!byCode.has(code)) byCode.set(code, []);
-      byCode.get(code).push(e);
-    }
-  }
 
   /** Символ валюты, который не выдаёт её код (например, «ZiG» выдаёт ZWG). */
   function symbolIsSafe(symbol) {
@@ -177,7 +175,12 @@
     };
   }
 
-  /** Вопрос «Какая страна использует валюту «…»?» — варианты: страны. */
+  /**
+   * Вопрос «Какая страна использует валюту «…»?» — варианты: страны.
+   *
+   * Спрашивается только про валюты с уникальным именем (см. pickCurrencyVariant),
+   * иначе у вопроса было бы несколько правильных ответов.
+   */
   function currencyCountryQuestion(entry, difficultyId) {
     // Название валюты — это уже подсказка, поэтому код и символ показываем,
     // а страну и её флаг — нет (они и есть ответ).
@@ -256,16 +259,17 @@
 
   /**
    * Выбирает тип вопроса для валюты.
-   *   «b» — только если валюту использует ровно одна страна в базе
-   *         (иначе у вопроса было бы несколько верных ответов);
+   *   «b» — «какая страна использует валюту «…»?»: только если это имя валюты
+   *         носит ровно одна страна базы (нейтральные «Доллар», «Песо»,
+   *         «Евро» носят многие — такой вопрос имел бы несколько ответов);
    *   «c» — только если у страны один код валюты.
    */
   function pickCurrencyVariant(entry) {
     const codes = codesOf(entry);
     const pool = ["a", "a", "a"];
 
-    const owners = countriesWithCode(entry.code);
-    if (codes.length === 1 && owners.size === 1 && !entry.multiCountry) {
+    const ownersByName = countriesWithName(entry.currency);
+    if (codes.length === 1 && ownersByName.size === 1 && !entry.multiCountry) {
       pool.push("b", "b");
     }
     if (codes.length === 1) {
@@ -280,9 +284,14 @@
   function buildQuestion(categoryId, entry, difficultyId, variant) {
     /* ————— Валюты ————— */
     if (categoryId === "currencies") {
-      if (variant === "b") return currencyCountryQuestion(entry, difficultyId);
-      if (variant === "c") return currencyCodeQuestion(entry, difficultyId);
-      return currencyNameQuestion(entry, difficultyId);
+      let q;
+      if (variant === "b") q = currencyCountryQuestion(entry, difficultyId);
+      else if (variant === "c") q = currencyCodeQuestion(entry, difficultyId);
+      else q = currencyNameQuestion(entry, difficultyId);
+      // Имя валюты отдельным полем: correctText для вариантов «b»/«c» —
+      // это страна/код, а по имени проверяется однозначность вопроса.
+      q.currencyName = entry.currency;
+      return q;
     }
 
     /* ————— Флаги ————— */

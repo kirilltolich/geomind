@@ -50,11 +50,14 @@ require(path.join(ROOT, "js", "data", "capitals.js"));
 require(path.join(ROOT, "js", "data", "flags.js"));
 require(path.join(ROOT, "js", "data", "currencies.js"));
 require(path.join(ROOT, "js", "data", "flag-codes.js"));
+require(path.join(ROOT, "js", "data", "difficulties.js"));
+require(path.join(ROOT, "js", "data", "questions.js"));
 
 const CAPITALS = global.window.GeoMind.Data.CAPITALS;
 const FLAGS = global.window.GeoMind.Data.FLAGS;
 const CURRENCIES = global.window.GeoMind.Data.CURRENCIES;
 const CODES = global.window.GeoMind.FlagCodes;
+const Questions = global.window.GeoMind.Questions;
 
 /* ── 1. ISO-коды флагов в данных ── */
 const allRecords = [
@@ -204,8 +207,10 @@ for (const c of CURRENCIES) {
   }
 }
 
-/* ── 7. Согласованность «название валюты ↔ код» ── */
-const nameToCode = new Map();
+/* ── 7. Согласованность «код ↔ название валюты» ──
+   Названия валют нейтральные, поэтому одно имя («Доллар», «Фунт») носят
+   много разных кодов — это ожидаемо. Обратное по-прежнему недопустимо:
+   один ISO-код не может иметь два разных отображаемых названия. */
 const codeToName = new Map();
 for (const c of CURRENCIES) {
   const prevName = codeToName.get(c.code);
@@ -213,12 +218,54 @@ for (const c of CURRENCIES) {
     fail(`[код с двумя названиями] ${c.code}: «${prevName}» и «${c.currency}»`);
   }
   codeToName.set(c.code, c.currency);
+}
 
-  const prevCode = nameToCode.get(c.currency);
-  if (prevCode && prevCode !== c.code) {
-    fail(`[валюта с двумя кодами] «${c.currency}»: ${prevCode} и ${c.code}`);
+/* ── 10. Название валюты не должно содержать название страны ──
+   Иначе вариант ответа подсказывает сам себя:
+   «Какая валюта у Канады? → Канадский доллар» . */
+for (const c of CURRENCIES) {
+  const nameLc = c.currency.toLowerCase();
+  const countryLc = c.country.toLowerCase();
+  if (nameLc.includes(countryLc)) {
+    fail(`[название выдаёт страну] ${c.country} → «${c.currency}»`);
   }
-  nameToCode.set(c.currency, c.code);
+}
+
+/* ── 11. Проверка сгенерированных вопросов по валютам ──
+   Для варианта «а» правильный ответ не должен содержать название
+   страны; вариант «b» допустим только для валют с уникальным именем. */
+const ownersByName = new Map();
+for (const c of CURRENCIES) {
+  ownersByName.set(c.currency, (ownersByName.get(c.currency) || 0) + 1);
+}
+let qChecked = 0;
+for (const diff of ["easy", "medium", "hard"]) {
+  for (const q of Questions.buildDeck("currencies", diff)) {
+    qChecked++;
+    if (q.options.length !== 4) fail(`[варианты] ${q.id}: ${q.options.length} вариантов вместо 4`);
+    if (new Set(q.options).size !== q.options.length) {
+      fail(`[дубли в вариантах] ${q.id}: ${q.options.join(" / ")}`);
+    }
+    if (q.options[q.correctIndex] !== q.correctText) {
+      fail(`[сломан correctIndex] ${q.id}`);
+    }
+    if (q.variant === "a" && q.correctText.toLowerCase().includes(q.country.toLowerCase())) {
+      fail(`[ответ выдаёт страну] ${q.id}: «${q.correctText}» для ${q.country}`);
+    }
+    if (q.variant === "b" && ownersByName.get(q.currencyName) !== 1) {
+      fail(`[неоднозначный вариант b] ${q.id}: «${q.currencyName}» носят ${ownersByName.get(q.currencyName)} стран`);
+    }
+  }
+}
+
+/* ── Названия, которые носят несколько стран (вариант «b» для них выключен) ── */
+const sharedNames = new Map();
+for (const c of CURRENCIES) {
+  sharedNames.set(c.currency, (sharedNames.get(c.currency) || 0) + 1);
+}
+const shared = [...sharedNames.entries()].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]);
+if (shared.length) {
+  note(`названий валют, общих для нескольких стран: ${shared.length} (${shared.slice(0, 4).map(([n, k]) => `«${n}»×${k}`).join(", ")}…)`);
 }
 
 /* ── Мультивалютные страны ── */
@@ -251,6 +298,8 @@ console.log(`SVG-файлов на диске:    ${existing.size}`);
 console.log("— валюты —");
 console.log(`Записей currencies:     ${CURRENCIES.length}`);
 console.log(`Уникальных валют:       ${new Set(CURRENCIES.map((c) => c.code)).size}`);
+console.log(`Уникальных названий:    ${new Set(CURRENCIES.map((c) => c.currency)).size}`);
+console.log(`Проверено вопросов:     ${qChecked}`);
 const byDiff = {};
 CURRENCIES.forEach((c) => { byDiff[c.difficulty] = (byDiff[c.difficulty] || 0) + 1; });
 console.log(`По сложности:           easy=${byDiff.easy || 0}, medium=${byDiff.medium || 0}, hard=${byDiff.hard || 0}`);
