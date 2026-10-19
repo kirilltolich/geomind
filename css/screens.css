@@ -1917,3 +1917,327 @@
     gap: 5px;
   }
 }
+
+/* ============================================================
+   GeoMind — профиль игрока и настройки
+   ============================================================ */
+
+/* ————— Карточка игрока на главном экране ————— */
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  font-size: 28px;
+  line-height: 1;
+  background: linear-gradient(150deg, #eef1ff 0%, #f7f2ff 100%);
+  border: 1px solid #e2e6f8;
+  border-radius: 18px;
+}
+
+.profile-id {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin-top: 3px;
+}
+
+/* В карточке профиля уровень и XP — компактная строка под именем */
+.profile-meta .profile-level {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+  letter-spacing: 0;
+}
+
+.profile-meta .profile-xp {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.btn-settings {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+  background: #f6f7fc;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-settings:hover {
+  color: var(--accent);
+  background: #eef1ff;
+  border-color: #ccd6f8;
+}
+
+.btn-settings:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.settings-gear {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.profile-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 12px;
+}
+
+/* ————— Экран настроек ————— */
+
+.screen-settings .btn-back {
+  margin-bottom: 14px;
+}
+
+.settings-head {
+  margin-bottom: 18px;
+}
+
+.settings-head .page-title {
+  margin-bottom: 6px;
+}
+
+.settings-sub {
+  font-size: 14px;
+  color: var(--text-soft);
+}
+
+.settings-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  margin-bottom: 22px;
+}
+
+.settings-avatar {
+  width: 58px;
+  height: 58px;
+  font-size: 30px;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-card {
+  padding: 18px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.field-input {
+  flex: 1;
+  min-width: 0;
+  height: 50px;
+  padding: 0 14px;
+  font: inherit;
+  /* 16px: iOS не приближает страницу при фокусе поля */
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  background: #f8f9fd;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.field-input:focus {
+  border-color: var(--accent);
+  background: #fff;
+}
+
+.field-input-error {
+  border-color: var(--red);
+  background: #fff7f7;
+}
+
+.field-counter {
+  flex-shrink: 0;
+  min-width: 44px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: right;
+}
+
+.field-error {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.field-error:empty {
+  display: none;
+}
+
+.field-hint {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 8px;
+}
+
+.emoji-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  font: inherit;
+  font-size: 23px;
+  line-height: 1;
+  background: #f8f9fd;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.emoji-btn:hover {
+  background: #eef1ff;
+  transform: translateY(-1px);
+}
+
+.emoji-btn-on {
+  background: #eef1ff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 107, 245, 0.14);
+}
+
+.emoji-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.emoji-glyph {
+  pointer-events: none;
+}
+
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.settings-note {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f7f8fd;
+  box-shadow: none;
+}
+
+.settings-note p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+
+.settings-note-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+@media (max-width: 520px) {
+  .profile-card {
+    padding: 18px;
+  }
+
+  .profile-avatar {
+    width: 46px;
+    height: 46px;
+    font-size: 24px;
+    border-radius: 15px;
+  }
+
+  .profile-head {
+    gap: 11px;
+  }
+
+  .profile-name {
+    font-size: 18px;
+  }
+
+  .btn-settings {
+    gap: 5px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+  }
+
+  .settings-card {
+    padding: 15px;
+  }
+
+  .settings-head .page-title {
+    font-size: 23px;
+  }
+
+  .emoji-btn {
+    font-size: 21px;
+  }
+}

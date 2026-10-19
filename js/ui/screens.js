@@ -10,6 +10,7 @@
   const Config = window.GeoMind.Config;
   const Dom = window.GeoMind.Dom;
   const Stats = window.GeoMind.Stats;
+  const Profile = window.GeoMind.Profile;
   const Levels = window.GeoMind.Levels;
   const Difficulties = window.GeoMind.Difficulties;
   const Categories = window.GeoMind.Categories;
@@ -167,25 +168,42 @@
       h("p", { class: "tagline", text: Config.TAGLINE }),
     );
 
-    // — Карточка уровня и серии —
+    // — Карточка игрока: имя, эмодзи, уровень и серия —
     const levelCaption = info.isMax
       ? "🏆 Максимальный уровень достигнут!"
       : `${info.toNext} XP до уровня ${info.level + 1}`;
+    const me = Profile.get();
 
-    const profile = h("section", { class: "card profile-card" },
-      h("div", { class: "profile-top" },
+    const profileCard = h("section", { class: "card profile-card" },
+      h("div", { class: "profile-head" },
+        h("span", { class: "profile-avatar", "aria-hidden": "true", text: me.emoji }),
+        h("div", { class: "profile-id" },
+          h("div", { class: "profile-name", text: me.name, title: me.name }),
+          h("div", { class: "profile-meta" },
+            h("span", { class: "profile-level", text: `🌍 Уровень ${info.level}` }),
+            h("span", { class: "profile-xp", text: `⭐ ${stats.xp} XP` }),
+          ),
+        ),
+        h("button", {
+          class: "btn-settings",
+          type: "button",
+          title: "Настройки профиля",
+          "aria-label": "Настройки профиля",
+          onclick: renderSettings,
+        },
+          h("span", { class: "settings-gear", text: "⚙️" }),
+          h("span", { class: "settings-label", text: "Настройки" }),
+        ),
+      ),
+      levelBar(info.progress * 100),
+      h("div", { class: "level-caption", text: levelCaption }),
+      h("div", { class: "profile-foot" },
         h("span", { class: "profile-streak", text: streakLabel(stats.streak) }),
         h("button", { class: "link-btn", onclick: renderStats },
           h("span", { text: "Статистика" }),
           h("span", { class: "link-arrow", text: "→" }),
         ),
       ),
-      h("div", { class: "profile-level-row" },
-        h("div", { class: "profile-level", text: `🌍 Уровень ${info.level}` }),
-        h("div", { class: "profile-xp", text: `⭐ ${stats.xp} XP` }),
-      ),
-      levelBar(info.progress * 100),
-      h("div", { class: "level-caption", text: levelCaption }),
     );
 
     // — Блок тренировки (открывает настройку) —
@@ -266,7 +284,136 @@
     );
 
     mount(h("div", { class: "screen screen-home" },
-      hero, profile, trainingSection, miniStats, categories));
+      hero, profileCard, trainingSection, miniStats, categories));
+  }
+
+  /* ================= Настройки профиля ================= */
+
+  function renderSettings() {
+    const me = Profile.get();
+    let selectedEmoji = me.emoji;
+
+    const back = h("button", { class: "btn btn-back", onclick: renderHome },
+      h("span", { class: "back-arrow", text: "←" }),
+      h("span", { text: "На главную" }),
+    );
+
+    const header = h("header", { class: "settings-head" },
+      h("h1", { class: "page-title", text: "⚙️ Настройки" }),
+      h("p", { class: "settings-sub", text: "Имя и аватар сохраняются в этом браузере вместе с твоим прогрессом." }),
+    );
+
+    const previewAvatar = h("span", { class: "profile-avatar settings-avatar", "aria-hidden": "true", text: selectedEmoji });
+    const previewName = h("div", { class: "profile-name", text: me.name });
+
+    const preview = h("div", { class: "card settings-preview" },
+      previewAvatar,
+      h("div", { class: "profile-id" },
+        previewName,
+        h("div", { class: "profile-meta", text: "Так тебя увидят на главном экране" }),
+      ),
+    );
+
+    const input = h("input", {
+      id: "player-name",
+      class: "field-input",
+      type: "text",
+      maxlength: String(Profile.MAX_NAME),
+      value: me.name,
+      autocomplete: "off",
+      spellcheck: "false",
+      placeholder: "Например, Кирилл",
+      "aria-label": "Имя игрока",
+    });
+
+    const counter = h("span", { class: "field-counter", text: `${Array.from(me.name).length}/${Profile.MAX_NAME}` });
+    const error = h("div", { class: "field-error", role: "alert" });
+
+    function refreshPreview() {
+      const clean = Profile.sanitizeName(input.value);
+      counter.textContent = `${Array.from(clean).length}/${Profile.MAX_NAME}`;
+      previewName.textContent = clean || Profile.DEFAULT_NAME;
+    }
+
+    input.addEventListener("input", () => {
+      refreshPreview();
+      if (error.textContent) {
+        error.textContent = "";
+        input.classList.remove("field-input-error");
+      }
+    });
+
+    const emojiButtons = Profile.EMOJIS.map((emoji) =>
+      h("button", {
+        type: "button",
+        class: `emoji-btn${emoji === selectedEmoji ? " emoji-btn-on" : ""}`,
+        "data-emoji": emoji,
+        "aria-label": `Эмодзи ${emoji}`,
+        "aria-pressed": emoji === selectedEmoji ? "true" : "false",
+        onclick: () => {
+          selectedEmoji = emoji;
+          previewAvatar.textContent = emoji;
+          for (const btn of emojiButtons) {
+            const on = btn.getAttribute("data-emoji") === emoji;
+            btn.classList.toggle("emoji-btn-on", on);
+            btn.setAttribute("aria-pressed", on ? "true" : "false");
+          }
+        },
+      }, h("span", { class: "emoji-glyph", text: emoji })),
+    );
+
+    function saveProfile() {
+      const clean = Profile.sanitizeName(input.value);
+      if (!clean) {
+        error.textContent = "Имя не может быть пустым — введите хотя бы одну букву.";
+        input.classList.add("field-input-error");
+        input.focus();
+        return;
+      }
+      Profile.save({ name: clean, emoji: selectedEmoji });
+      renderHome();
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveProfile();
+      }
+    });
+
+    const nameSection = h("section", { class: "settings-section" },
+      h("h2", { class: "section-title", text: "Имя игрока" }),
+      h("div", { class: "card settings-card" },
+        h("label", { class: "field-label", for: "player-name", text: "Как тебя зовут?" }),
+        h("div", { class: "field-row" }, input, counter),
+        error,
+        h("div", { class: "field-hint", text: `До ${Profile.MAX_NAME} символов. Пробелы по краям убираются автоматически.` }),
+      ),
+    );
+
+    const emojiSection = h("section", { class: "settings-section" },
+      h("h2", { class: "section-title", text: "Эмодзи" }),
+      h("div", { class: "card settings-card" },
+        h("div", { class: "field-label", text: "Выбери аватар" }),
+        h("div", { class: "emoji-grid", role: "group", "aria-label": "Галерея эмодзи" }, emojiButtons),
+      ),
+    );
+
+    const actions = h("div", { class: "settings-actions" },
+      h("button", { class: "btn btn-primary btn-save-profile", onclick: saveProfile },
+        h("span", { text: "Сохранить" }),
+        h("span", { class: "btn-arrow", text: "→" }),
+      ),
+      h("button", { class: "btn btn-ghost btn-cancel-profile", onclick: renderHome }, "Отмена"),
+    );
+
+    const notice = h("div", { class: "card settings-note" },
+      h("span", { class: "settings-note-icon", text: "💾" }),
+      h("p", { text: "Профиль хранится отдельно от статистики: смена имени не сбрасывает опыт, уровень, историю и ошибки. У каждого устройства — свой профиль." }),
+    );
+
+    mount(h("div", { class: "screen screen-settings" },
+      back, header, preview, nameSection, emojiSection, actions, notice));
   }
 
   /* ================= Экран настройки тренировки ================= */
@@ -1157,6 +1304,7 @@
 
   window.GeoMind.Screens = {
     renderHome,
+    renderSettings,
     renderSetup,
     renderTraining,
     renderResult,

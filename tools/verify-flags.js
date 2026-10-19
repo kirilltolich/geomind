@@ -63,6 +63,21 @@ require(path.join(ROOT, "js", "data", "flag-codes.js"));
 require(path.join(ROOT, "js", "data", "difficulties.js"));
 require(path.join(ROOT, "js", "data", "questions.js"));
 
+/* Профиль игрока — модуль без DOM, проверяем его отдельно.
+   localStorage подменяем картой в памяти и следим, чтобы профиль
+   писал только в свой ключ и не касался статистики. */
+const profileStore = new Map();
+const STATS_KEY = "geomind:stats:v1";
+profileStore.set(STATS_KEY, JSON.stringify({ xp: 1234, totalQuestions: 100 }));
+global.window.localStorage = {
+  getItem: (k) => (profileStore.has(k) ? profileStore.get(k) : null),
+  setItem: (k, v) => profileStore.set(k, String(v)),
+};
+require(path.join(ROOT, "js", "core", "config.js"));
+require(path.join(ROOT, "js", "core", "storage.js"));
+require(path.join(ROOT, "js", "core", "profile.js"));
+const Profile = global.window.GeoMind.Profile;
+
 const CAPITALS = global.window.GeoMind.Data.CAPITALS;
 const FLAGS = global.window.GeoMind.Data.FLAGS;
 const CURRENCIES = global.window.GeoMind.Data.CURRENCIES;
@@ -499,6 +514,41 @@ for (const diff of ["easy", "medium", "hard"]) {
   }
 }
 
+/* ════════════ Профиль игрока ════════════ */
+
+const DEFAULT_PROFILE = Profile.get();
+if (DEFAULT_PROFILE.name !== "Игрок") fail(`[профиль] имя по умолчанию: «${DEFAULT_PROFILE.name}»`);
+if (!Profile.EMOJIS.includes(DEFAULT_PROFILE.emoji)) fail(`[профиль] эмодзи по умолчанию вне галереи`);
+if (Profile.MAX_NAME !== 20) fail(`[профиль] лимит имени: ${Profile.MAX_NAME}`);
+
+if (Profile.sanitizeName("  Кирилл  ") !== "Кирилл") fail("[профиль] пробелы по краям не убираются");
+if (Profile.sanitizeName("   ") !== "") fail("[профиль] пустое имя не распознано");
+if (Profile.sanitizeName("Имя\nс\tтабом") !== "Имя с табом") fail("[профиль] управляющие символы не заменяются");
+if (Array.from(Profile.sanitizeName("я".repeat(30))).length !== 20) fail("[профиль] имя не обрезается до 20 символов");
+if (Profile.sanitizeEmoji("<script>") !== Profile.DEFAULT_EMOJI) fail("[профиль] посторонний эмодзи принят");
+
+const saved = Profile.save({ name: "  Кирилл  ", emoji: "🧠" });
+if (saved.name !== "Кирилл" || saved.emoji !== "🧠") fail(`[профиль] сохранение: «${saved.name}» / ${saved.emoji}`);
+if (!profileStore.has(Profile.KEY)) fail("[профиль] профиль не записан в localStorage");
+
+/* Пустое имя не должно затирать сохранённое */
+const afterEmpty = Profile.save({ name: "   ", emoji: "🔥" });
+if (afterEmpty.name !== "Кирилл") fail(`[профиль] пустое имя сбросило: «${afterEmpty.name}»`);
+if (afterEmpty.emoji !== "🔥") fail(`[профиль] эмодзи не сохранился: ${afterEmpty.emoji}`);
+
+/* Статистика не тронута */
+const statsRaw = profileStore.get(STATS_KEY);
+if (!statsRaw || JSON.parse(statsRaw).xp !== 1234) fail("[профиль] сохранение профиля изменило статистику");
+if (profileStore.size !== 2) fail(`[профиль] лишние ключи в хранилище: ${[...profileStore.keys()].join(", ")}`);
+
+/* Профиль читается заново после «перезагрузки» */
+delete require.cache[require.resolve(path.join(ROOT, "js", "core", "profile.js"))];
+require(path.join(ROOT, "js", "core", "profile.js"));
+const reloaded = global.window.GeoMind.Profile.get();
+if (reloaded.name !== "Кирилл" || reloaded.emoji !== "🔥") {
+  fail(`[профиль] после перезагрузки: «${reloaded.name}» / ${reloaded.emoji}`);
+}
+
 /* ── Отчёт ── */
 console.log("── GeoMind · проверка данных ──");
 console.log(`Стран в capitals/flags: ${countries.size}`);
@@ -533,6 +583,12 @@ RUSSIAN_REGIONS.forEach((r) => { rgByDiff[r.difficulty] = (rgByDiff[r.difficulty
 console.log(`По сложности:           easy=${rgByDiff.easy || 0}, medium=${rgByDiff.medium || 0}, hard=${rgByDiff.hard || 0}`);
 console.log(`Вопросов:               easy=${rgDeckSizes.easy}, medium=${rgDeckSizes.medium}, hard=${rgDeckSizes.hard}`);
 console.log(`Проверено вопросов:     ${rgChecked}`);
+console.log("— профиль игрока —");
+console.log(`Имя по умолчанию:       ${DEFAULT_PROFILE.name}`);
+console.log(`Эмодзи по умолчанию:    ${DEFAULT_PROFILE.emoji}`);
+console.log(`Галерея эмодзи:         ${Profile.EMOJIS.length}`);
+console.log(`Лимит имени:            ${Profile.MAX_NAME} символов`);
+console.log(`Ключ хранения:          ${Profile.KEY}`);
 
 if (notes.length) {
   console.log("\nПримечания:");

@@ -19,6 +19,10 @@ window.GeoMind.Config = {
   // Ключ хранения статистики в localStorage
   STORAGE_KEY: "geomind:stats:v1",
 
+  // Ключ хранения профиля игрока (имя и эмодзи) — отдельно от статистики,
+  // чтобы смена имени не касалась прогресса
+  PROFILE_STORAGE_KEY: "geomind:profile:v1",
+
   // Максимальное количество записей в истории тренировок
   HISTORY_LIMIT: 50,
 };
