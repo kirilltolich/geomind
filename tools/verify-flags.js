@@ -20,6 +20,14 @@
  *   9. Нет стран, использующих валюту, которой нет у соседей по базе
  *      (проверяется как «есть ли хоть один правдоподобный вариант»).
  *
+ * Автокоды (автомобильные коды регионов России):
+ *  10. У каждого региона есть название, округ и непустой список кодов;
+ *      коды — только цифры (2–3 знака). Уровней сложности у категории нет.
+ *  11. Каждый код принадлежит ровно одному региону (нет дубликатов).
+ *  12. Сгенерированные вопросы корректны: 4 варианта без повторов, верный
+ *      ответ — среди вариантов, вопросы собираются из всей базы (без уровней),
+ *      а в вопросе «регион → код» ровно один вариант принадлежит региону.
+ *
  * Запуск:  node tools/verify-flags.js
  * Код возврата 0 — всё в порядке, 1 — есть проблемы.
  */
@@ -49,6 +57,8 @@ global.window = {};
 require(path.join(ROOT, "js", "data", "capitals.js"));
 require(path.join(ROOT, "js", "data", "flags.js"));
 require(path.join(ROOT, "js", "data", "currencies.js"));
+require(path.join(ROOT, "js", "data", "autocodes.js"));
+require(path.join(ROOT, "js", "data", "russian-regions.js"));
 require(path.join(ROOT, "js", "data", "flag-codes.js"));
 require(path.join(ROOT, "js", "data", "difficulties.js"));
 require(path.join(ROOT, "js", "data", "questions.js"));
@@ -56,7 +66,10 @@ require(path.join(ROOT, "js", "data", "questions.js"));
 const CAPITALS = global.window.GeoMind.Data.CAPITALS;
 const FLAGS = global.window.GeoMind.Data.FLAGS;
 const CURRENCIES = global.window.GeoMind.Data.CURRENCIES;
+const AUTOCODES = global.window.GeoMind.Data.AUTOCODES;
+const RUSSIAN_REGIONS = global.window.GeoMind.Data.RUSSIAN_REGIONS;
 const CODES = global.window.GeoMind.FlagCodes;
+const Difficulties = global.window.GeoMind.Difficulties;
 const Questions = global.window.GeoMind.Questions;
 
 /* ── 1. ISO-коды флагов в данных ── */
@@ -288,6 +301,204 @@ for (const c of CURRENCIES) {
   }
 }
 
+/* ════════════ Автокоды регионов России ════════════ */
+
+const DISTRICTS = new Set([
+  "Центральный", "Северо-Западный", "Южный", "Северо-Кавказский",
+  "Приволжский", "Уральский", "Сибирский", "Дальневосточный",
+]);
+
+const regions = new Set();
+const codeOwner = new Map(); // код → регион
+for (const a of AUTOCODES) {
+  if (!a.region) { fail("[автокод без региона]"); continue; }
+  if (regions.has(a.region)) fail(`[дубликат региона] ${a.region}`);
+  regions.add(a.region);
+
+  if (!DISTRICTS.has(a.district)) fail(`[неизвестный округ] ${a.region}: ${a.district}`);
+  if (a.difficulty) fail(`[лишняя сложность] у «Автокодов» нет уровней, а у ${a.region} есть difficulty`);
+  if (!Array.isArray(a.codes) || a.codes.length === 0) {
+    fail(`[нет кодов] ${a.region}`);
+    continue;
+  }
+  for (const code of a.codes) {
+    if (!/^\d{2,3}$/.test(code)) fail(`[код не число 2–3 знака] ${a.region}: ${code}`);
+    if (codeOwner.has(code) && codeOwner.get(code) !== a.region) {
+      fail(`[дубликат автокода] «${code}» у «${codeOwner.get(code)}» и «${a.region}»`);
+    }
+    codeOwner.set(code, a.region);
+  }
+}
+
+/* ── 12. Сгенерированные вопросы ──
+   У «Автокодов» уровней нет: вопросы собираются из всей базы, поэтому
+   достаточно одного прохода — уровень у всех вопросов единый ("uniform"). */
+let acChecked = 0;
+{
+  const uniform = Difficulties.filter((d) => d.hidden).map((d) => d.id);
+  if (uniform.length !== 1) fail(`[уровни] скрытый уровень должен быть один, их ${uniform.length}`);
+  for (const q of Questions.buildDeck("autocodes", "uniform")) {
+    acChecked++;
+    if (!uniform.includes(q.difficulty)) fail(`[уровень автокода] ${q.id}: ${q.difficulty}`);
+    if (q.options.length !== 4) fail(`[варианты] ${q.id}: ${q.options.length} вариантов вместо 4`);
+    if (new Set(q.options).size !== q.options.length) {
+      fail(`[дубли в вариантах] ${q.id}: ${q.options.join(" / ")}`);
+    }
+    if (q.options[q.correctIndex] !== q.correctText) fail(`[сломан correctIndex] ${q.id}`);
+    if (q.correctText === null || q.correctText === undefined) fail(`[пустой ответ] ${q.id}`);
+
+    if (q.variant === "a") {
+      // код → регион: правильный ответ — регион, а показанный код
+      // должен принадлежать этому региону
+      const owner = codeOwner.get(q.plate);
+      if (owner !== q.correctText) fail(`[код не от региона] ${q.id}: ${q.plate} → ${owner}, ответ «${q.correctText}»`);
+      for (const opt of q.options) {
+        if (opt !== q.correctText && !regions.has(opt)) fail(`[вариант не регион] ${q.id}: ${opt}`);
+      }
+    } else if (q.variant === "b") {
+      // регион → код: среди вариантов ровно один код этого региона
+      // (q.correctText здесь — код, а регион лежит в q.country)
+      const own = new Set((AUTOCODES.find((a) => a.region === q.country) || {}).codes || []);
+      const belonging = q.options.filter((o) => own.has(o));
+      if (belonging.length !== 1) fail(`[неоднозначный вариант b] ${q.id}: кодов региона в вариантах — ${belonging.length}`);
+    } else {
+      fail(`[неизвестный вариант автокода] ${q.id}: ${q.variant}`);
+    }
+  }
+}
+
+/* ════════════ Регионы России и административные центры ════════════ */
+
+/* Ожидаемый состав справочника (зафиксирован в js/data/russian-regions.js). */
+const REGION_TYPES = new Map([
+  ["республика", 24],
+  ["край", 9],
+  ["область", 48],
+  ["город федерального значения", 3],
+  ["автономная область", 1],
+  ["автономный округ", 4],
+]);
+const REGION_DISTRICTS = new Set([...DISTRICTS, "Прочие"]);
+const DIFFICULTY_IDS = new Set(Difficulties.map((d) => d.id));
+
+if (RUSSIAN_REGIONS.length !== 89) {
+  fail(`[состав] субъектов должно быть 89, в базе ${RUSSIAN_REGIONS.length}`);
+}
+
+const regionIds = new Set();
+const regionNamesAll = new Set();
+const typeCount = new Map();
+const centerCount = new Map();
+const regionByCenter = new Map();
+for (const r of RUSSIAN_REGIONS) {
+  if (!r.id) fail(`[нет id] «${r.name}»`);
+  else if (regionIds.has(r.id)) fail(`[дубликат id] ${r.id}`);
+  else regionIds.add(r.id);
+
+  if (!r.name) fail(`[нет названия] ${r.id}`);
+  else if (regionNamesAll.has(r.name)) fail(`[дубликат названия] ${r.name}`);
+  else regionNamesAll.add(r.name);
+
+  if (!r.gen) fail(`[нет родительного падежа] ${r.name}`);
+  if (!r.center) fail(`[нет административного центра] ${r.name}`);
+  if (!DIFFICULTY_IDS.has(r.difficulty)) fail(`[странная сложность] ${r.name}: ${r.difficulty}`);
+  if (r.district !== null && !REGION_DISTRICTS.has(r.district)) {
+    fail(`[неизвестный округ] ${r.name}: ${r.district}`);
+  }
+
+  const expectedType = REGION_TYPES.has(r.type);
+  if (!expectedType) fail(`[неизвестный тип] ${r.name}: ${r.type}`);
+  typeCount.set(r.type, (typeCount.get(r.type) || 0) + 1);
+
+  if (r.type === "республика") {
+    if (!r.capital) fail(`[республика без столицы] ${r.name}`);
+    else if (r.capital !== r.center) fail(`[столица != центр] ${r.name}: ${r.capital} / ${r.center}`);
+  } else if (r.capital) {
+    fail(`[лишняя столица] ${r.name}: capital только у республик`);
+  }
+
+  if (r.center) {
+    centerCount.set(r.center, (centerCount.get(r.center) || 0) + 1);
+    regionByCenter.set(r.center, r);
+  }
+}
+
+for (const [type, expected] of REGION_TYPES) {
+  const actual = typeCount.get(type) || 0;
+  if (actual !== expected) fail(`[состав] «${type}»: ${actual} вместо ${expected}`);
+}
+
+/* Центры, общие для нескольких субъектов: допустимо только для городов
+   федерального значения (Москва, Санкт-Петербург), и только потому, что
+   вопрос «центр → регион» для них не строится. */
+for (const [center, n] of centerCount) {
+  if (n > 1 && !regionNamesAll.has(center)) {
+    fail(`[центр у нескольких субъектов] «${center}» — ${n}`);
+  }
+}
+
+/* ── 13. Сгенерированные вопросы по регионам ── */
+let rgChecked = 0;
+const rgDeckSizes = {};
+for (const diff of ["easy", "medium", "hard"]) {
+  const deck = Questions.buildDeck("russian-regions", diff);
+  rgDeckSizes[diff] = deck.length;
+  if (!deck.length) fail(`[пустой уровень] russian-regions/${diff}`);
+  const variants = new Set();
+  for (const q of deck) {
+    rgChecked++;
+    variants.add(q.variant);
+    const entry = RUSSIAN_REGIONS.find((r) => r.id === q.regionId);
+    if (!entry) { fail(`[нет записи] ${q.id}`); continue; }
+    if (entry.difficulty !== diff) fail(`[не та сложность] ${q.id}: ${entry.difficulty} вместо ${diff}`);
+    if (entry.center === entry.name) fail(`[вопрос о городе без центра] ${q.id}`);
+    if (q.options.length !== 4) fail(`[варианты] ${q.id}: ${q.options.length} вариантов вместо 4`);
+    if (new Set(q.options).size !== q.options.length) {
+      fail(`[дубли в вариантах] ${q.id}: ${q.options.join(" / ")}`);
+    }
+    if (!q.options.includes(q.correctText)) fail(`[нет верного ответа] ${q.id}`);
+    if (q.options.filter((o) => o === q.correctText).length !== 1) {
+      fail(`[несколько верных ответов] ${q.id}`);
+    }
+    if (q.options[q.correctIndex] !== q.correctText) fail(`[сломан correctIndex] ${q.id}`);
+
+    if (q.variant === "a") {
+      if (q.correctText !== entry.center) fail(`[центр не тот] ${q.id}: «${q.correctText}»`);
+      if (!q.promptText.includes(entry.gen)) fail(`[падеж] ${q.id}: «${q.promptText}»`);
+    } else if (q.variant === "b") {
+      if (q.correctText !== entry.name) fail(`[регион не тот] ${q.id}: «${q.correctText}»`);
+      // варианты-регионы не должны иметь тот же центр — иначе два верных ответа
+      for (const opt of q.options) {
+        if (opt === entry.name) continue;
+        const other = RUSSIAN_REGIONS.find((r) => r.name === opt);
+        if (!other) fail(`[вариант не регион] ${q.id}: ${opt}`);
+        else if (other.center === entry.center) fail(`[второй верный вариант] ${q.id}: ${opt}`);
+      }
+    } else {
+      fail(`[неизвестный тип вопроса] ${q.id}: ${q.variant}`);
+    }
+  }
+  if (!variants.has("a")) fail(`[нет вопросов «регион → центр»] ${diff}`);
+  if (!variants.has("b")) fail(`[нет вопросов «центр → регион»] ${diff}`);
+}
+
+/* ── 14. Длинные тренировки по регионам (10/20/50) ──
+   Если в уровне меньше 50 субъектов, вопросы добираются кругами
+   по пулу; верный ответ и четыре варианта должны остаться корректными. */
+for (const diff of ["easy", "medium", "hard"]) {
+  for (const count of [10, 20, 50]) {
+    const list = Questions.build("russian-regions", diff, count);
+    if (list.length !== count) fail(`[длина] russian-regions/${diff}: ${list.length} вместо ${count}`);
+    for (let i = 0; i < list.length; i++) {
+      const q = list[i];
+      if (q.options.length !== 4) fail(`[варианты] ${q.id}: ${q.options.length} вместо 4`);
+      if (new Set(q.options).size !== q.options.length) fail(`[дубли в вариантах] ${q.id}`);
+      if (!q.options.includes(q.correctText)) fail(`[нет верного ответа] ${q.id}`);
+      if (i > 0 && list[i - 1].id === q.id) fail(`[два одинаковых вопроса подряд] ${q.id}`);
+    }
+  }
+}
+
 /* ── Отчёт ── */
 console.log("── GeoMind · проверка данных ──");
 console.log(`Стран в capitals/flags: ${countries.size}`);
@@ -306,6 +517,22 @@ console.log(`По сложности:           easy=${byDiff.easy || 0}, medium
 const byRegion = {};
 CURRENCIES.forEach((c) => { byRegion[c.region] = (byRegion[c.region] || 0) + 1; });
 console.log(`По регионам:            ${Object.entries(byRegion).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+console.log("— автокоды —");
+console.log(`Регионов РФ:            ${AUTOCODES.length}`);
+console.log(`Уникальных автокодов:   ${codeOwner.size}`);
+console.log(`Проверено вопросов:     ${acChecked}`);
+console.log(`Уровни сложности:       нет (единый уровень)`);
+const acByDistrict = {};
+AUTOCODES.forEach((a) => { acByDistrict[a.district] = (acByDistrict[a.district] || 0) + 1; });
+console.log(`По округам:             ${Object.entries(acByDistrict).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+console.log("— регионы России —");
+console.log(`Субъектов РФ:           ${RUSSIAN_REGIONS.length}`);
+console.log(`По типам:               ${[...typeCount.entries()].map(([k, v]) => `${k}=${v}`).join(", ")}`);
+const rgByDiff = {};
+RUSSIAN_REGIONS.forEach((r) => { rgByDiff[r.difficulty] = (rgByDiff[r.difficulty] || 0) + 1; });
+console.log(`По сложности:           easy=${rgByDiff.easy || 0}, medium=${rgByDiff.medium || 0}, hard=${rgByDiff.hard || 0}`);
+console.log(`Вопросов:               easy=${rgDeckSizes.easy}, medium=${rgDeckSizes.medium}, hard=${rgDeckSizes.hard}`);
+console.log(`Проверено вопросов:     ${rgChecked}`);
 
 if (notes.length) {
   console.log("\nПримечания:");

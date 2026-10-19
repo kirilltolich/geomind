@@ -1649,3 +1649,271 @@
     font-size: 22px;
   }
 }
+
+/* ============================================================
+   GeoMind — категория «Автокоды»: номерной знак региона
+   ============================================================ */
+
+.plate {
+  display: inline-flex;
+  align-items: stretch;
+  background: #ffffff;
+  border: 2px solid #1f2937;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.plate-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.plate-rus {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #1f2937;
+}
+
+.plate-region {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-left: 2px solid #1f2937;
+  background: #ffffff;
+}
+
+.plate-code {
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #1f2937;
+}
+
+/* Крупный знак в карточке вопроса */
+.plate-question {
+  margin: 2px auto 4px;
+  animation: popIn 0.35s ease;
+}
+
+.plate-question .plate-main {
+  min-width: 118px;
+  min-height: 56px;
+}
+
+.plate-question .plate-code {
+  font-size: 30px;
+}
+
+.plate-question .plate-region {
+  min-width: 74px;
+}
+
+/* Маленький знак в варианте ответа */
+.plate-option .plate-main {
+  min-width: 62px;
+  min-height: 34px;
+  padding: 0 9px;
+}
+
+.plate-option .plate-rus {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+}
+
+.plate-option .plate-code {
+  font-size: 19px;
+}
+
+.plate-option .plate-region {
+  min-width: 46px;
+  padding: 0 8px;
+}
+
+@media (max-width: 480px) {
+  .plate-question .plate-main {
+    min-width: 96px;
+    min-height: 48px;
+  }
+
+  .plate-question .plate-code {
+    font-size: 26px;
+  }
+
+  .plate-question .plate-region {
+    min-width: 62px;
+  }
+
+  .plate-option .plate-main {
+    min-width: 54px;
+  }
+
+  .plate-option .plate-code {
+    font-size: 17px;
+  }
+}
+
+/* ============================================================
+   GeoMind — «Автокоды»: обучение вместо уровней сложности
+   ============================================================ */
+
+/* Кнопка-карточка «Открыть таблицу» на экране настройки */
+.learn-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 18px;
+  flex-wrap: wrap;
+}
+
+.learn-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.learn-body {
+  flex: 1 1 190px;
+  min-width: 0;
+}
+
+.learn-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.learn-desc {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.btn-learn {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 12px 18px;
+}
+
+/* ————— Сама обучающая страница ————— */
+
+.screen-learn {
+  padding-top: 2px;
+}
+
+.screen-learn .btn-back {
+  margin-bottom: 16px;
+}
+
+.learn-head {
+  margin-bottom: 22px;
+}
+
+.learn-head .page-title {
+  margin-bottom: 6px;
+}
+
+.learn-sub {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.learn-group {
+  margin-bottom: 26px;
+}
+
+.learn-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.learn-group-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eef1f8;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-soft);
+  letter-spacing: 0;
+}
+
+.learn-table {
+  padding: 6px 16px;
+}
+
+.learn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.learn-row:last-child {
+  border-bottom: none;
+}
+
+.learn-row-region {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.learn-row-codes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+  max-width: 55%;
+}
+
+.learn-actions {
+  margin-top: 4px;
+}
+
+.learn-actions .btn {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .learn-card {
+    gap: 11px;
+    padding: 16px 14px;
+  }
+
+  .btn-learn {
+    width: 100%;
+  }
+
+  .learn-table {
+    padding: 4px 12px;
+  }
+
+  .learn-row {
+    gap: 8px;
+    padding: 9px 0;
+  }
+
+  .learn-row-region {
+    font-size: 14px;
+  }
+
+  .learn-row-codes {
+    gap: 5px;
+  }
+}

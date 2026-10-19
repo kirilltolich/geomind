@@ -94,6 +94,23 @@
     symbol: "Символ",
   };
 
+  /**
+   * Номерной знак с кодом региона (категория «Автокоды»).
+   * variant: "question" — крупный знак в карточке вопроса,
+   *          "option"   — маленький знак в варианте ответа.
+   */
+  function plateVisual(code, variant) {
+    const cls = variant === "option" ? "plate plate-option" : "plate plate-question";
+    return h("span", { class: cls, "aria-label": `Номерной знак с кодом ${code}` },
+      h("span", { class: "plate-main" },
+        h("span", { class: "plate-rus", text: "RUS" }),
+      ),
+      h("span", { class: "plate-region" },
+        h("span", { class: "plate-code", text: code }),
+      ),
+    );
+  }
+
   /** Чипы с данными о валюте в карточке вопроса. */
   function currencyFactsEl_(facts) {
     if (!Array.isArray(facts) || facts.length === 0) return null;
@@ -109,9 +126,21 @@
 
   function catDiffLabel(category, difficulty, withCatEmoji) {
     const catLabel = `${withCatEmoji ? `${category.emoji} ` : ""}${category.title}`;
-    if (difficulty) return `${catLabel} · ${difficulty.emoji} ${difficulty.title}`;
+    // Скрытые уровни (например, единый уровень «Автокодов») не показываем
+    if (difficulty && !difficulty.hidden) {
+      return `${catLabel} · ${difficulty.emoji} ${difficulty.title}`;
+    }
     return catLabel;
   }
+
+  /* Подписи сложности для «Регионов России»: тексты в Difficulties общие
+     («известные страны»), а здесь речь о субъектах РФ. Остальные категории
+     видят исходные описания. */
+  const REGION_DIFF_DESC = {
+    easy: "Известные регионы и их административные центры",
+    medium: "Менее известные регионы и похожие варианты",
+    hard: "Малознакомые регионы, автономные округа и новые субъекты",
+  };
 
   /** Режимы тренировки для экрана настройки. */
   function buildModes() {
@@ -295,37 +324,61 @@
         ),
       );
 
-      // Сложность
-      const diffSection = h("section", { class: "setup-section" },
-        h("h2", { class: "section-title", text: "🎯 Выбери сложность" }),
-        h("div", { class: "diff-grid" },
-          Difficulties.map((d) => {
-            const selected = d.id === diffId;
-            return h("div", {
-              class: `sel-card diff-card${selected ? " sel-card-on" : ""}`,
-              role: "radio",
-              tabindex: "0",
-              "aria-checked": selected ? "true" : "false",
-              onclick: () => { diffId = d.id; paint(); },
-              onkeydown: (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  diffId = d.id;
-                  paint();
-                }
-              },
-            },
-              h("div", { class: "diff-head" },
-                h("span", { class: "diff-emoji", text: d.emoji }),
-                h("span", { class: "diff-title", text: d.title }),
+      // Сложность.
+      // У «Автокодов» уровней нет: на месте выбора сложности — отдельная
+      // кнопка обучающей таблицы регионов (каждый регион и все его коды).
+      const isAuto = catId === "autocodes";
+      const diffSection = isAuto
+        ? h("section", { class: "setup-section" },
+            h("h2", { class: "section-title", text: "📖 Обучение" }),
+            h("div", { class: "card learn-card" },
+              h("span", { class: "learn-emoji", text: "🗺️" }),
+              h("div", { class: "learn-body" },
+                h("div", { class: "learn-title", text: "Таблица регионов" }),
+                h("div", { class: "learn-desc", text: "Все регионы России и их автомобильные коды — отдельной страницей" }),
               ),
-              h("div", { class: "diff-xp", text: `+${d.xpPerCorrect} XP за правильный ответ` }),
-              h("div", { class: "diff-desc", text: d.desc }),
-              selected ? h("span", { class: "sel-check", text: "✓" }) : null,
-            );
-          }),
-        ),
-      );
+              h("button", {
+                class: "btn btn-primary btn-learn",
+                onclick: () => renderAutocodeLearn(),
+              },
+                h("span", { text: "Открыть таблицу" }),
+                h("span", { class: "btn-arrow", text: "→" }),
+              ),
+            ),
+          )
+        : h("section", { class: "setup-section" },
+            h("h2", { class: "section-title", text: "🎯 Выбери сложность" }),
+            h("div", { class: "diff-grid" },
+              Difficulties.filter((d) => !d.hidden).map((d) => {
+                const selected = d.id === diffId;
+                return h("div", {
+                  class: `sel-card diff-card${selected ? " sel-card-on" : ""}`,
+                  role: "radio",
+                  tabindex: "0",
+                  "aria-checked": selected ? "true" : "false",
+                  onclick: () => { diffId = d.id; paint(); },
+                  onkeydown: (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      diffId = d.id;
+                      paint();
+                    }
+                  },
+                },
+                  h("div", { class: "diff-head" },
+                    h("span", { class: "diff-emoji", text: d.emoji }),
+                    h("span", { class: "diff-title", text: d.title }),
+                  ),
+                  h("div", { class: "diff-xp", text: `+${d.xpPerCorrect} XP за правильный ответ` }),
+                  h("div", {
+                    class: "diff-desc",
+                    text: catId === "russian-regions" ? (REGION_DIFF_DESC[d.id] || d.desc) : d.desc,
+                  }),
+                  selected ? h("span", { class: "sel-check", text: "✓" }) : null,
+                );
+              }),
+            ),
+          );
 
       // Режим
       const modeSection = h("section", { class: "setup-section" },
@@ -359,7 +412,10 @@
         class: "btn btn-primary btn-start-setup",
         onclick: () => {
           const cat = catOf(catId);
-          const diff = diffOf(diffId);
+          // Без уровней всегда используется единый уровень
+          const diff = catId === "autocodes"
+            ? Difficulties.find((d) => d.id === "uniform")
+            : diffOf(diffId);
           const mode = selectedMode();
           if (cat && diff) renderTraining(cat, diff, { mode: mode.mode, count: mode.count });
         },
@@ -374,6 +430,83 @@
     }
 
     paint();
+  }
+
+  /* ================= Обучающая таблица автокодов ================= */
+
+  /* Порядок федеральных округов в обучающей таблице. */
+  const LEARN_DISTRICTS = [
+    "Центральный", "Северо-Западный", "Южный", "Северо-Кавказский",
+    "Приволжский", "Уральский", "Сибирский", "Дальневосточный",
+  ];
+
+  /**
+   * Справочная страница «Коды регионов России»: каждый регион и ВСЕ его
+   * автомобильные коды (у Москвы и Петербурга их несколько).
+   *
+   * Открывается отдельной кнопкой вместо выбора сложности: у «Автокодов»
+   * уровней нет, вместо них — обучение.
+   */
+  function renderAutocodeLearn() {
+    const regions = (window.GeoMind.Data.AUTOCODES || []).slice();
+    const totalCodes = regions.reduce((n, r) => n + (r.codes ? r.codes.length : 0), 0);
+
+    const back = h("button", { class: "btn btn-back", onclick: () => renderSetup("autocodes") },
+      h("span", { class: "back-arrow", text: "←" }),
+      h("span", { text: "К тренировке" }),
+    );
+
+    const header = h("header", { class: "learn-head" },
+      h("h1", { class: "page-title", text: "🗺️ Коды регионов России" }),
+      h("p", { class: "learn-sub",
+        text: `${regions.length} ${Dom.plural(regions.length, "регион", "региона", "регионов")}`
+          + ` · ${totalCodes} ${Dom.plural(totalCodes, "код", "кода", "кодов")}` }),
+    );
+
+    const known = new Set(LEARN_DISTRICTS);
+    const groups = LEARN_DISTRICTS
+      .map((district) => ({ district: district, items: regions.filter((r) => r.district === district) }))
+      .filter((g) => g.items.length > 0);
+    const others = regions.filter((r) => !known.has(r.district));
+    if (others.length) groups.push({ district: "Прочие", items: others });
+
+    const sections = groups.map((g) =>
+      h("section", { class: "learn-group" },
+        h("h2", { class: "section-title learn-group-title" },
+          h("span", { text: `📍 ${g.district}` }),
+          h("span", { class: "learn-group-count", text: `${g.items.length}` }),
+        ),
+        h("div", { class: "card learn-table" },
+          g.items
+            .slice()
+            .sort((a, b) => a.region.localeCompare(b.region, "ru"))
+            .map((r) =>
+              h("div", { class: "learn-row" },
+                h("span", { class: "learn-row-region", text: r.region }),
+                h("span", { class: "learn-row-codes" },
+                  r.codes.map((code) => plateVisual(code, "option")),
+                ),
+              ),
+            ),
+        ),
+      ),
+    );
+
+    const actions = h("div", { class: "learn-actions" },
+      h("button", {
+        class: "btn btn-primary btn-start-setup",
+        onclick: () => {
+          const cat = catOf("autocodes");
+          const diff = Difficulties.find((d) => d.id === "uniform");
+          if (cat && diff) renderTraining(cat, diff, { mode: "classic", count: Config.QUESTIONS_PER_TRAINING });
+        },
+      },
+        h("span", { text: "Начать тренировку" }),
+        h("span", { class: "btn-arrow", text: "→" }),
+      ),
+    );
+
+    mount(h("div", { class: "screen screen-learn" }, back, header, sections, actions));
   }
 
   /* ================= Экран тренировки ================= */
@@ -554,11 +687,16 @@
       // показать, чтобы не выдать ответ (см. js/data/questions.js).
       const currencyFactsEl = currencyFactsEl_(q.currencyFacts);
 
+      // Номерной знак с кодом — главный визуальный элемент вопроса про
+      // автокоды (q.plate). Он пуст, когда код и есть правильный ответ.
+      const plateEl = q.plate ? plateVisual(q.plate, "question") : null;
+
       const questionCard = h(
         "div",
-        { class: `card question-card${q.showFlag ? " flag-card" : ""}` },
+        { class: `card question-card${q.showFlag ? " flag-card" : ""}${plateEl ? " plate-card" : ""}` },
         questionFlagEl,
         questionCountryEl,
+        plateEl,
         h("h2", { class: "question-text", text: q.promptText }),
         currencyFactsEl,
       );
@@ -571,7 +709,9 @@
           const labelSpan = h("span", { class: "answer-letter", text: Config.ANSWER_LABELS[i] });
           const valueSpan = q.optionType === "flag"
             ? FlagImage({ country: option, alt: `Флаг: ${option}`, variant: "option" })
-            : h("span", { class: "answer-text", text: option });
+            : q.optionType === "plate"
+              ? plateVisual(option, "option")
+              : h("span", { class: "answer-text", text: option });
           return h("button", {
             class: "btn answer-btn",
             "data-index": String(i),
@@ -900,7 +1040,7 @@
     );
 
     // — Результаты по сложности —
-    const diffRows = Difficulties.map((d) => {
+    const diffRows = Difficulties.filter((d) => !d.hidden).map((d) => {
       const g = Stats.groupInfo(stats.difficultyStats, d.id);
       const s = groupSummary(g, false);
       return h("div", { class: "group-item" },
@@ -994,7 +1134,11 @@
               mistakes.map((m) =>
                 h("div", { class: "mistake-item" },
                   h("span", { class: "mistake-flag" },
-                    FlagImage({ country: m.country, alt: `Флаг: ${m.country}`, variant: "option" }),
+                    m.category === "autocodes"
+                      ? plateVisual(m.code, "option")
+                      : m.category === "russian-regions"
+                        ? h("span", { class: "mistake-region", text: "🏙️" })
+                        : FlagImage({ country: m.country, alt: `Флаг: ${m.country}`, variant: "option" }),
                   ),
                   h("div", { class: "mistake-body" },
                     h("div", { class: "mistake-q", text: m.promptText }),
@@ -1017,5 +1161,6 @@
     renderTraining,
     renderResult,
     renderStats,
+    renderAutocodeLearn,
   };
 })();
